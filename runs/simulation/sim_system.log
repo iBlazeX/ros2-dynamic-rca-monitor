@@ -1,0 +1,367 @@
+[INFO] [launch]: All log files can be found below /home/lynx/.ros/log/2026-09-23-11-05-49-402490-WINDOWS-FIRE-522
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [sim_world-1]: process started with pid [527]
+[INFO] [perception_node-2]: process started with pid [528]
+[INFO] [localization_node-3]: process started with pid [529]
+[INFO] [planning_node-4]: process started with pid [530]
+[INFO] [control_node-5]: process started with pid [531]
+[INFO] [monitor_node-6]: process started with pid [532]
+[monitor_node-6] [INFO] [1790161550.419143609] [diagnostic_monitor]: DiagnosticMonitorNode started. DB: /home/lynx/ros2_rca_ws/events.db, Weights: (wD=0.3, wT=0.3, wS=0.25, wA=0.15), z>3.0 confirmed x2, warmup 4.0s
+[control_node-5] [INFO] [1790161550.492255756] [control_node]: control_node ready (path -> /cmd_vel)
+[planning_node-4] [WARN] [1790161550.493653934] [planning_node]: planning_node: pose source = localization
+[planning_node-4] [INFO] [1790161550.494471227] [planning_node]: planning_node ready (pose + obstacles -> /planning/path)
+[sim_world-1] [INFO] [1790161550.528279829] [sim_world]: sensor node started: lidar_node
+[sim_world-1] [INFO] [1790161550.544615850] [sim_world]: sensor node started: camera_node
+[sim_world-1] [INFO] [1790161550.561633323] [sim_world]: sensor node started: imu_node
+[perception_node-2] [INFO] [1790161550.580185416] [perception_node]: perception_node ready (lidar + camera -> /perception/obstacles)
+[sim_world-1] [INFO] [1790161550.584161743] [sim_world]: sensor node started: odometry_node
+[sim_world-1] [INFO] [1790161550.584610135] [sim_world]: sim_world ready (seed=7, obstacles=12)
+[localization_node-3] [INFO] [1790161550.599713228] [localization_node]: localization_node ready (odom + imu + landmarks -> /localization/pose)
+[monitor_node-6] [INFO] [1790161551.398673331] [diagnostic_monitor]: Discovered graph: nodes=['camera_node', 'control_node', 'imu_node', 'lidar_node', 'localization_node', 'odometry_node', 'perception_node', 'planning_node', 'sim_world'] edges=[camera_node->perception_node, control_node->sim_world, imu_node->localization_node, lidar_node->perception_node, localization_node->planning_node, odometry_node->localization_node, perception_node->localization_node, perception_node->planning_node, planning_node->control_node]
+[monitor_node-6] [INFO] [1790161551.459785836] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /cmd_vel [geometry_msgs/msg/TwistStamped]
+[monitor_node-6] [INFO] [1790161551.462483082] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /localization/pose [geometry_msgs/msg/PoseWithCovarianceStamped]
+[monitor_node-6] [INFO] [1790161551.464622830] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /perception/obstacles [geometry_msgs/msg/PoseArray]
+[monitor_node-6] [INFO] [1790161551.486330822] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /planning/path [nav_msgs/msg/Path]
+[monitor_node-6] [INFO] [1790161551.558957880] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /sim/camera/image [sensor_msgs/msg/Image]
+[monitor_node-6] [INFO] [1790161551.560985704] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /sim/imu/data [sensor_msgs/msg/Imu]
+[monitor_node-6] [INFO] [1790161551.563083782] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /sim/lidar/scan [sensor_msgs/msg/LaserScan]
+[monitor_node-6] [INFO] [1790161551.565383062] [diagnostic_monitor]: Dynamically subscribed to monitor topic: /sim/odom [nav_msgs/msg/Odometry]
+[sim_world-1] [WARN] [1790162157.691129544] [camera_node]: camera_node: degradation "latency" param=0.4 duration=10.0s
+[sim_world-1] [WARN] [1790162157.739196973] [camera_node]: camera_node: degradation "latency" param=0.4 duration=10.0s
+[sim_world-1] [WARN] [1790162157.790093321] [camera_node]: camera_node: degradation "latency" param=0.4 duration=10.0s
+[monitor_node-6] [WARN] [1790162158.355741329] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4112 deviated from baseline 0.0106±0.0008 (z=477.9, confirmed x2) (sev=1.00)
+[monitor_node-6] [INFO] [1790162158.399125579] [diagnostic_monitor]: 
+[monitor_node-6] ============================================================
+[monitor_node-6] ROOT CAUSE DIAGNOSIS: camera_node (Confidence: 1.000)
+[monitor_node-6] ============================================================
+[monitor_node-6] Score Breakdown  R(C) = wD*D + wT*T + wS*S + wA*A:
+[monitor_node-6]   R(camera_node) = 0.3·D(1.00) + 0.3·T(1.00) + 0.25·S(1.00) + 0.15·A(1.00) = 1.000
+[monitor_node-6]   - Dependency D: 1.00 (reaches 0 downstream anomalous node(s); 0 anomalous upstream node(s))
+[monitor_node-6]   - Temporal   T: 1.00 (first anomaly at t=1790162158.15s; earliest in window = supporting evidence, not proof of causality)
+[monitor_node-6]   - Symptom    S: 1.00 (explains 1/1 anomalous nodes)
+[monitor_node-6]   - Severity   A: 1.00 (max normalised severity on node, 1 direct anomaly event(s))
+[monitor_node-6] 
+[monitor_node-6] Propagation Chain (evidence-ordered, via discovered graph edges):
+[monitor_node-6]   camera_node (t=1790162158.15s: /sim/camera/image:latency, sev=1.00)
+[monitor_node-6] 
+[monitor_node-6] ============================================================
+[monitor_node-6] [WARN] [1790162158.554181933] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.2, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162158.754245196] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4096 deviated from baseline 0.0106±0.0008 (z=476.0, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162158.954439531] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4099 deviated from baseline 0.0106±0.0008 (z=476.3, confirmed x5) (sev=1.00)
+[monitor_node-6] [WARN] [1790162159.154360414] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4104 deviated from baseline 0.0106±0.0008 (z=477.0, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162159.346513277] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4025 deviated from baseline 0.0106±0.0008 (z=467.5, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162159.554153643] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162159.753923792] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4087 deviated from baseline 0.0106±0.0008 (z=475.0, confirmed x9) (sev=1.00)
+[monitor_node-6] [WARN] [1790162159.954252534] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.2, confirmed x10) (sev=1.00)
+[monitor_node-6] [WARN] [1790162160.155206360] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.4, confirmed x11) (sev=1.00)
+[monitor_node-6] [WARN] [1790162160.356621452] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x12) (sev=1.00)
+[monitor_node-6] [WARN] [1790162160.554039153] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4105 deviated from baseline 0.0106±0.0008 (z=477.0, confirmed x13) (sev=1.00)
+[monitor_node-6] [WARN] [1790162160.754521638] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4109 deviated from baseline 0.0106±0.0008 (z=477.6, confirmed x14) (sev=1.00)
+[monitor_node-6] [WARN] [1790162160.954443600] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.1, confirmed x15) (sev=1.00)
+[monitor_node-6] [WARN] [1790162161.153934286] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4102 deviated from baseline 0.0106±0.0008 (z=476.7, confirmed x16) (sev=1.00)
+[monitor_node-6] [WARN] [1790162161.353773472] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x17) (sev=1.00)
+[monitor_node-6] [WARN] [1790162161.554142533] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4105 deviated from baseline 0.0106±0.0008 (z=477.0, confirmed x18) (sev=1.00)
+[monitor_node-6] [WARN] [1790162161.754052799] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4104 deviated from baseline 0.0106±0.0008 (z=477.0, confirmed x19) (sev=1.00)
+[monitor_node-6] [WARN] [1790162161.953618568] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4105 deviated from baseline 0.0106±0.0008 (z=477.1, confirmed x20) (sev=1.00)
+[monitor_node-6] [WARN] [1790162162.153780467] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162162.353926157] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.2, confirmed x22) (sev=1.00)
+[monitor_node-6] [WARN] [1790162162.553999804] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.2, confirmed x23) (sev=1.00)
+[monitor_node-6] [WARN] [1790162162.754441436] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4107 deviated from baseline 0.0106±0.0008 (z=477.3, confirmed x24) (sev=1.00)
+[monitor_node-6] [WARN] [1790162162.954435893] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.4, confirmed x25) (sev=1.00)
+[monitor_node-6] [WARN] [1790162163.154582586] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4110 deviated from baseline 0.0106±0.0008 (z=477.7, confirmed x26) (sev=1.00)
+[monitor_node-6] [WARN] [1790162163.354894982] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4111 deviated from baseline 0.0106±0.0008 (z=477.8, confirmed x27) (sev=1.00)
+[monitor_node-6] [WARN] [1790162163.554532879] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x28) (sev=1.00)
+[monitor_node-6] [WARN] [1790162163.755017405] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4107 deviated from baseline 0.0106±0.0008 (z=477.3, confirmed x29) (sev=1.00)
+[monitor_node-6] [WARN] [1790162163.954206298] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4107 deviated from baseline 0.0106±0.0008 (z=477.4, confirmed x30) (sev=1.00)
+[monitor_node-6] [WARN] [1790162164.154363525] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4104 deviated from baseline 0.0106±0.0008 (z=477.0, confirmed x31) (sev=1.00)
+[monitor_node-6] [WARN] [1790162164.361561116] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.5, confirmed x32) (sev=1.00)
+[monitor_node-6] [WARN] [1790162164.555508961] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.5, confirmed x33) (sev=1.00)
+[monitor_node-6] [WARN] [1790162164.754955118] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.4, confirmed x34) (sev=1.00)
+[monitor_node-6] [WARN] [1790162164.954211815] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4102 deviated from baseline 0.0106±0.0008 (z=476.7, confirmed x35) (sev=1.00)
+[monitor_node-6] [WARN] [1790162165.153918673] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4103 deviated from baseline 0.0106±0.0008 (z=476.9, confirmed x36) (sev=1.00)
+[monitor_node-6] [WARN] [1790162165.354216305] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4102 deviated from baseline 0.0106±0.0008 (z=476.8, confirmed x37) (sev=1.00)
+[monitor_node-6] [WARN] [1790162165.556413096] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4106 deviated from baseline 0.0106±0.0008 (z=477.2, confirmed x38) (sev=1.00)
+[monitor_node-6] [WARN] [1790162165.754331159] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4111 deviated from baseline 0.0106±0.0008 (z=477.8, confirmed x39) (sev=1.00)
+[monitor_node-6] [WARN] [1790162165.953949800] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4105 deviated from baseline 0.0106±0.0008 (z=477.1, confirmed x40) (sev=1.00)
+[monitor_node-6] [WARN] [1790162166.153873567] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4104 deviated from baseline 0.0106±0.0008 (z=476.9, confirmed x41) (sev=1.00)
+[monitor_node-6] [WARN] [1790162166.354368744] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4105 deviated from baseline 0.0106±0.0008 (z=477.1, confirmed x42) (sev=1.00)
+[monitor_node-6] [WARN] [1790162166.554504068] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4110 deviated from baseline 0.0106±0.0008 (z=477.7, confirmed x43) (sev=1.00)
+[monitor_node-6] [WARN] [1790162166.754749624] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4115 deviated from baseline 0.0106±0.0008 (z=478.2, confirmed x44) (sev=1.00)
+[monitor_node-6] [WARN] [1790162166.954658251] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.4, confirmed x45) (sev=1.00)
+[monitor_node-6] [WARN] [1790162167.154288043] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.5, confirmed x46) (sev=1.00)
+[monitor_node-6] [WARN] [1790162167.354364831] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4107 deviated from baseline 0.0106±0.0008 (z=477.3, confirmed x47) (sev=1.00)
+[monitor_node-6] [WARN] [1790162167.554584186] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4109 deviated from baseline 0.0106±0.0008 (z=477.5, confirmed x48) (sev=1.00)
+[monitor_node-6] [WARN] [1790162167.754330239] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4107 deviated from baseline 0.0106±0.0008 (z=477.3, confirmed x49) (sev=1.00)
+[sim_world-1] [INFO] [1790162167.792925839] [camera_node]: camera_node: degradation "latency" expired
+[monitor_node-6] [WARN] [1790162167.954680210] [diagnostic_monitor]: ANOMALY on [camera_node] /sim/camera/image:latency: Value 0.4108 deviated from baseline 0.0106±0.0008 (z=477.5, confirmed x50) (sev=1.00)
+[monitor_node-6] [WARN] [1790162168.154472606] [diagnostic_monitor]: ANOMALY on [camera_node] out_of_order: Out of order header timestamp (1790162167.743 < 1790162167.943) (sev=0.40)
+[monitor_node-6] [INFO] [1790162174.411181043] [diagnostic_monitor]: Anomaly window cleared. System operating nominally.
+[perception_node-2] [WARN] [1790162418.262531835] [perception_node]: perception_node: degradation "crash" param=0.35 duration=10.0s
+[perception_node-2] [FATAL] [1790162418.263240359] [perception_node]: perception_node: crash -> exiting process
+[ERROR] [perception_node-2]: process has died [pid 528, exit code 1, cmd '/home/lynx/ros2_rca_ws/install/rca_sim/lib/rca_sim/perception_node --ros-args -r __node:=perception_node --params-file /tmp/launch_params_mbfuf4i_'].
+[monitor_node-6] [WARN] [1790162418.899052075] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 0.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=0.88)
+[monitor_node-6] [INFO] [1790162418.900571392] [diagnostic_monitor]: 
+[monitor_node-6] ============================================================
+[monitor_node-6] ROOT CAUSE DIAGNOSIS: perception_node (Confidence: 0.982)
+[monitor_node-6] ============================================================
+[monitor_node-6] Score Breakdown  R(C) = wD*D + wT*T + wS*S + wA*A:
+[monitor_node-6]   R(perception_node) = 0.3·D(1.00) + 0.3·T(1.00) + 0.25·S(1.00) + 0.15·A(0.88) = 0.982
+[monitor_node-6]   - Dependency D: 1.00 (reaches 0 downstream anomalous node(s); 0 anomalous upstream node(s))
+[monitor_node-6]   - Temporal   T: 1.00 (first anomaly at t=1790162418.66s; earliest in window = supporting evidence, not proof of causality)
+[monitor_node-6]   - Symptom    S: 1.00 (explains 1/1 anomalous nodes)
+[monitor_node-6]   - Severity   A: 0.88 (max normalised severity on node, 1 direct anomaly event(s))
+[monitor_node-6] 
+[monitor_node-6] Propagation Chain (evidence-ordered, via discovered graph edges):
+[monitor_node-6]   perception_node (t=1790162418.66s: message_timeout, sev=0.88)
+[monitor_node-6] 
+[monitor_node-6] Candidate Ranking & Evidence Comparison:
+[monitor_node-6]   #2 camera_node          R=0.415 (Δ -0.567) [no direct anomaly observed; does not reach observed symptoms via dependency edges]
+[monitor_node-6]   #3 lidar_node           R=0.415 (Δ -0.567) [no direct anomaly observed; does not reach observed symptoms via dependency edges]
+[monitor_node-6] ============================================================
+[monitor_node-6] [WARN] [1790162419.400741206] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 1.19s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162419.896115881] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 1.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.348734975] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3312 deviated from baseline 0.0709±0.0059 (z=44.4, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.398308951] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 2.19s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.401083934] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3399 deviated from baseline 0.0709±0.0059 (z=45.9, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.448817208] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3482 deviated from baseline 0.0709±0.0059 (z=47.3, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.499183794] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3570 deviated from baseline 0.0709±0.0059 (z=48.8, confirmed x5) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.548407024] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3653 deviated from baseline 0.0709±0.0059 (z=50.2, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.599529230] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3736 deviated from baseline 0.0709±0.0059 (z=51.6, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.648440660] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3822 deviated from baseline 0.0709±0.0059 (z=53.1, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.699935372] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3909 deviated from baseline 0.0709±0.0059 (z=54.6, confirmed x9) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.748907939] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3991 deviated from baseline 0.0709±0.0059 (z=56.0, confirmed x10) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.803523002] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4076 deviated from baseline 0.0709±0.0059 (z=57.4, confirmed x11) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.848927903] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4161 deviated from baseline 0.0709±0.0059 (z=58.9, confirmed x12) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.896748690] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 2.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.898896984] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4250 deviated from baseline 0.0709±0.0059 (z=60.4, confirmed x13) (sev=1.00)
+[monitor_node-6] [WARN] [1790162420.948324618] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4333 deviated from baseline 0.0709±0.0059 (z=61.8, confirmed x14) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.000088305] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4418 deviated from baseline 0.0709±0.0059 (z=63.2, confirmed x15) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.049054660] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4501 deviated from baseline 0.0709±0.0059 (z=64.7, confirmed x16) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.099775039] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4589 deviated from baseline 0.0709±0.0059 (z=66.2, confirmed x17) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.149184625] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4671 deviated from baseline 0.0709±0.0059 (z=67.6, confirmed x18) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.199579390] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4758 deviated from baseline 0.0709±0.0059 (z=69.0, confirmed x19) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.248817027] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4840 deviated from baseline 0.0709±0.0059 (z=70.4, confirmed x20) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.299314048] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4927 deviated from baseline 0.0709±0.0059 (z=71.9, confirmed x21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.348824454] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5013 deviated from baseline 0.0709±0.0059 (z=73.4, confirmed x22) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.397995505] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 3.19s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.402461751] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5096 deviated from baseline 0.0709±0.0059 (z=74.8, confirmed x23) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.449907457] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5181 deviated from baseline 0.0709±0.0059 (z=76.2, confirmed x24) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.500029914] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5264 deviated from baseline 0.0709±0.0059 (z=77.7, confirmed x25) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.548821686] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5350 deviated from baseline 0.0709±0.0059 (z=79.1, confirmed x26) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.599147070] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5434 deviated from baseline 0.0709±0.0059 (z=80.6, confirmed x27) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.650432846] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5520 deviated from baseline 0.0709±0.0059 (z=82.0, confirmed x28) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.698671327] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5604 deviated from baseline 0.0709±0.0059 (z=83.5, confirmed x29) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.748765771] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5690 deviated from baseline 0.0709±0.0059 (z=84.9, confirmed x30) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.798670464] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5773 deviated from baseline 0.0709±0.0059 (z=86.3, confirmed x31) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.849760121] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5857 deviated from baseline 0.0709±0.0059 (z=87.8, confirmed x32) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.896210811] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 3.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.900375032] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5943 deviated from baseline 0.0709±0.0059 (z=89.2, confirmed x33) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.949154578] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6029 deviated from baseline 0.0709±0.0059 (z=90.7, confirmed x34) (sev=1.00)
+[monitor_node-6] [WARN] [1790162421.999971924] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6118 deviated from baseline 0.0709±0.0059 (z=92.2, confirmed x35) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.049580209] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6198 deviated from baseline 0.0709±0.0059 (z=93.6, confirmed x36) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.098830598] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6283 deviated from baseline 0.0709±0.0059 (z=95.0, confirmed x37) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.149359116] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6371 deviated from baseline 0.0709±0.0059 (z=96.5, confirmed x38) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.199526740] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6452 deviated from baseline 0.0709±0.0059 (z=97.9, confirmed x39) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.248009547] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6537 deviated from baseline 0.0709±0.0059 (z=99.4, confirmed x40) (sev=1.00)
+[INFO] [perception_node-2]: process started with pid [1016]
+[monitor_node-6] [WARN] [1790162422.301022120] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6625 deviated from baseline 0.0709±0.0059 (z=100.9, confirmed x41) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.348041301] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6708 deviated from baseline 0.0709±0.0059 (z=102.3, confirmed x42) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.396763710] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 4.19s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.399546411] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6792 deviated from baseline 0.0709±0.0059 (z=103.7, confirmed x43) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.448596951] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6878 deviated from baseline 0.0709±0.0059 (z=105.2, confirmed x44) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.498837243] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6963 deviated from baseline 0.0709±0.0059 (z=106.6, confirmed x45) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.549222210] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7048 deviated from baseline 0.0709±0.0059 (z=108.1, confirmed x46) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.601043877] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7134 deviated from baseline 0.0709±0.0059 (z=109.6, confirmed x47) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.650461669] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7216 deviated from baseline 0.0709±0.0059 (z=110.9, confirmed x48) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.699516332] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7302 deviated from baseline 0.0709±0.0059 (z=112.4, confirmed x49) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.750948894] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7385 deviated from baseline 0.0709±0.0059 (z=113.8, confirmed x50) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.799099714] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7472 deviated from baseline 0.0709±0.0059 (z=115.3, confirmed x51) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.849443406] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7556 deviated from baseline 0.0709±0.0059 (z=116.7, confirmed x52) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.896670511] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 4.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.901631334] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7641 deviated from baseline 0.0709±0.0059 (z=118.2, confirmed x53) (sev=1.00)
+[monitor_node-6] [WARN] [1790162422.948614570] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7724 deviated from baseline 0.0709±0.0059 (z=119.6, confirmed x54) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.000157263] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7813 deviated from baseline 0.0709±0.0059 (z=121.1, confirmed x55) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.048480423] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7895 deviated from baseline 0.0709±0.0059 (z=122.5, confirmed x56) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.099458665] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7982 deviated from baseline 0.0709±0.0059 (z=124.0, confirmed x57) (sev=1.00)
+[perception_node-2] [INFO] [1790162423.112173810] [perception_node]: perception_node ready (lidar + camera -> /perception/obstacles)
+[monitor_node-6] [WARN] [1790162423.148859979] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8067 deviated from baseline 0.0709±0.0059 (z=125.5, confirmed x58) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.202281314] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8151 deviated from baseline 0.0709±0.0059 (z=126.9, confirmed x59) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.249767426] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8235 deviated from baseline 0.0709±0.0059 (z=128.3, confirmed x60) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.300050107] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8323 deviated from baseline 0.0709±0.0059 (z=129.8, confirmed x61) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.348931447] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8405 deviated from baseline 0.0709±0.0059 (z=131.2, confirmed x62) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.401715426] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 5.19s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.409038764] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8494 deviated from baseline 0.0709±0.0059 (z=132.7, confirmed x63) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.448441457] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8575 deviated from baseline 0.0709±0.0059 (z=134.1, confirmed x64) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.500158713] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8658 deviated from baseline 0.0709±0.0059 (z=135.5, confirmed x65) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.549326072] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8746 deviated from baseline 0.0709±0.0059 (z=137.0, confirmed x66) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.598982825] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8827 deviated from baseline 0.0709±0.0059 (z=138.4, confirmed x67) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.650416267] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8916 deviated from baseline 0.0709±0.0059 (z=139.9, confirmed x68) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.700585802] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8999 deviated from baseline 0.0709±0.0059 (z=141.3, confirmed x69) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.748697726] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9082 deviated from baseline 0.0709±0.0059 (z=142.8, confirmed x70) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.800126000] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9167 deviated from baseline 0.0709±0.0059 (z=144.2, confirmed x71) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.850013389] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9254 deviated from baseline 0.0709±0.0059 (z=145.7, confirmed x72) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.906307221] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 5.69s (expected ~0.100s, threshold 0.45s, last seen t=1790162418.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.909810953] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9337 deviated from baseline 0.0709±0.0059 (z=147.1, confirmed x73) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.948644089] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9423 deviated from baseline 0.0709±0.0059 (z=148.6, confirmed x74) (sev=1.00)
+[monitor_node-6] [WARN] [1790162423.999116526] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9508 deviated from baseline 0.0709±0.0059 (z=150.0, confirmed x75) (sev=1.00)
+[monitor_node-6] [WARN] [1790162424.049234248] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9593 deviated from baseline 0.0709±0.0059 (z=151.5, confirmed x76) (sev=1.00)
+[monitor_node-6] [WARN] [1790162424.100733646] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9678 deviated from baseline 0.0709±0.0059 (z=152.9, confirmed x77) (sev=1.00)
+[monitor_node-6] [WARN] [1790162424.148995583] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9764 deviated from baseline 0.0709±0.0059 (z=154.4, confirmed x78) (sev=1.00)
+[monitor_node-6] [WARN] [1790162424.200859294] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.9850 deviated from baseline 0.0709±0.0059 (z=155.9, confirmed x79) (sev=1.00)
+[monitor_node-6] [INFO] [1790162430.402019965] [diagnostic_monitor]: Anomaly window cleared. System operating nominally.
+[perception_node-2] [WARN] [1790162507.308265910] [perception_node]: perception_node: degradation "crash" param=0.35 duration=10.0s
+[perception_node-2] [FATAL] [1790162507.309385818] [perception_node]: perception_node: crash -> exiting process
+[ERROR] [perception_node-2]: process has died [pid 1016, exit code 1, cmd '/home/lynx/ros2_rca_ws/install/rca_sim/lib/rca_sim/perception_node --ros-args -r __node:=perception_node --params-file /tmp/launch_params_mbfuf4i_'].
+[monitor_node-6] [WARN] [1790162507.897293743] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 0.68s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=0.88)
+[monitor_node-6] [INFO] [1790162507.899597577] [diagnostic_monitor]: 
+[monitor_node-6] ============================================================
+[monitor_node-6] ROOT CAUSE DIAGNOSIS: perception_node (Confidence: 0.982)
+[monitor_node-6] ============================================================
+[monitor_node-6] Score Breakdown  R(C) = wD*D + wT*T + wS*S + wA*A:
+[monitor_node-6]   R(perception_node) = 0.3·D(1.00) + 0.3·T(1.00) + 0.25·S(1.00) + 0.15·A(0.88) = 0.982
+[monitor_node-6]   - Dependency D: 1.00 (reaches 0 downstream anomalous node(s); 0 anomalous upstream node(s))
+[monitor_node-6]   - Temporal   T: 1.00 (first anomaly at t=1790162507.66s; earliest in window = supporting evidence, not proof of causality)
+[monitor_node-6]   - Symptom    S: 1.00 (explains 1/1 anomalous nodes)
+[monitor_node-6]   - Severity   A: 0.88 (max normalised severity on node, 1 direct anomaly event(s))
+[monitor_node-6] 
+[monitor_node-6] Propagation Chain (evidence-ordered, via discovered graph edges):
+[monitor_node-6]   perception_node (t=1790162507.66s: message_timeout, sev=0.88)
+[monitor_node-6] 
+[monitor_node-6] Candidate Ranking & Evidence Comparison:
+[monitor_node-6]   #2 camera_node          R=0.415 (Δ -0.567) [no direct anomaly observed; does not reach observed symptoms via dependency edges]
+[monitor_node-6]   #3 lidar_node           R=0.415 (Δ -0.567) [no direct anomaly observed; does not reach observed symptoms via dependency edges]
+[monitor_node-6] ============================================================
+[monitor_node-6] [WARN] [1790162508.398944507] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 1.18s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162508.896923657] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 1.68s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.349930026] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3302 deviated from baseline 0.0711±0.0079 (z=32.9, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.398436641] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 2.18s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.401762302] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3389 deviated from baseline 0.0711±0.0079 (z=34.0, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.449436234] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3474 deviated from baseline 0.0711±0.0079 (z=35.0, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.498803664] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3558 deviated from baseline 0.0711±0.0079 (z=36.1, confirmed x5) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.548776166] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3644 deviated from baseline 0.0711±0.0079 (z=37.2, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.600205924] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3728 deviated from baseline 0.0711±0.0079 (z=38.3, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.648299438] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3812 deviated from baseline 0.0711±0.0079 (z=39.3, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.700708503] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3896 deviated from baseline 0.0711±0.0079 (z=40.4, confirmed x9) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.748993058] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.3981 deviated from baseline 0.0711±0.0079 (z=41.5, confirmed x10) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.800554201] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4068 deviated from baseline 0.0711±0.0079 (z=42.6, confirmed x11) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.849028624] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4150 deviated from baseline 0.0711±0.0079 (z=43.6, confirmed x12) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.897382388] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 2.68s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.900878313] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4237 deviated from baseline 0.0711±0.0079 (z=44.7, confirmed x13) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.948927257] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4322 deviated from baseline 0.0711±0.0079 (z=45.8, confirmed x14) (sev=1.00)
+[monitor_node-6] [WARN] [1790162509.998521751] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4407 deviated from baseline 0.0711±0.0079 (z=46.9, confirmed x15) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.051038591] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4490 deviated from baseline 0.0711±0.0079 (z=47.9, confirmed x16) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.099179300] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4577 deviated from baseline 0.0711±0.0079 (z=49.0, confirmed x17) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.148790631] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4662 deviated from baseline 0.0711±0.0079 (z=50.1, confirmed x18) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.200190515] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4747 deviated from baseline 0.0711±0.0079 (z=51.2, confirmed x19) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.249007665] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4829 deviated from baseline 0.0711±0.0079 (z=52.2, confirmed x20) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.298344498] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.4915 deviated from baseline 0.0711±0.0079 (z=53.3, confirmed x21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.349598965] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5000 deviated from baseline 0.0711±0.0079 (z=54.4, confirmed x22) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.411027210] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 3.18s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.417289873] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5083 deviated from baseline 0.0711±0.0079 (z=55.5, confirmed x23) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.448424769] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5170 deviated from baseline 0.0711±0.0079 (z=56.5, confirmed x24) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.499530782] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5256 deviated from baseline 0.0711±0.0079 (z=57.6, confirmed x25) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.549748279] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5341 deviated from baseline 0.0711±0.0079 (z=58.7, confirmed x26) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.599560719] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5423 deviated from baseline 0.0711±0.0079 (z=59.8, confirmed x27) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.649973021] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5508 deviated from baseline 0.0711±0.0079 (z=60.8, confirmed x28) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.699714934] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5595 deviated from baseline 0.0711±0.0079 (z=61.9, confirmed x29) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.748500423] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5677 deviated from baseline 0.0711±0.0079 (z=63.0, confirmed x30) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.798214707] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5765 deviated from baseline 0.0711±0.0079 (z=64.1, confirmed x31) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.849539766] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5849 deviated from baseline 0.0711±0.0079 (z=65.2, confirmed x32) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.896396503] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 3.68s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.898320954] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.5932 deviated from baseline 0.0711±0.0079 (z=66.2, confirmed x33) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.948544306] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6018 deviated from baseline 0.0711±0.0079 (z=67.3, confirmed x34) (sev=1.00)
+[monitor_node-6] [WARN] [1790162510.999115664] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6105 deviated from baseline 0.0711±0.0079 (z=68.4, confirmed x35) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.049898685] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6186 deviated from baseline 0.0711±0.0079 (z=69.4, confirmed x36) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.099737762] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6275 deviated from baseline 0.0711±0.0079 (z=70.6, confirmed x37) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.150778914] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6358 deviated from baseline 0.0711±0.0079 (z=71.6, confirmed x38) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.199057363] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6443 deviated from baseline 0.0711±0.0079 (z=72.7, confirmed x39) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.249443765] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6527 deviated from baseline 0.0711±0.0079 (z=73.8, confirmed x40) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.299230849] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6612 deviated from baseline 0.0711±0.0079 (z=74.8, confirmed x41) (sev=1.00)
+[INFO] [perception_node-2]: process started with pid [1053]
+[monitor_node-6] [WARN] [1790162511.348545911] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6697 deviated from baseline 0.0711±0.0079 (z=75.9, confirmed x42) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.401293048] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 4.18s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.407520013] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6781 deviated from baseline 0.0711±0.0079 (z=77.0, confirmed x43) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.448336252] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6866 deviated from baseline 0.0711±0.0079 (z=78.1, confirmed x44) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.499326253] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.6952 deviated from baseline 0.0711±0.0079 (z=79.2, confirmed x45) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.548509918] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7035 deviated from baseline 0.0711±0.0079 (z=80.2, confirmed x46) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.599707734] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7123 deviated from baseline 0.0711±0.0079 (z=81.3, confirmed x47) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.649065340] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7205 deviated from baseline 0.0711±0.0079 (z=82.4, confirmed x48) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.698830239] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7292 deviated from baseline 0.0711±0.0079 (z=83.5, confirmed x49) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.748328895] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7375 deviated from baseline 0.0711±0.0079 (z=84.5, confirmed x50) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.799733194] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7461 deviated from baseline 0.0711±0.0079 (z=85.6, confirmed x51) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.849268837] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7544 deviated from baseline 0.0711±0.0079 (z=86.7, confirmed x52) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.896332119] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 4.68s (expected ~0.100s, threshold 0.45s, last seen t=1790162507.21) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.899305423] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7631 deviated from baseline 0.0711±0.0079 (z=87.8, confirmed x53) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.948222404] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7714 deviated from baseline 0.0711±0.0079 (z=88.8, confirmed x54) (sev=1.00)
+[monitor_node-6] [WARN] [1790162511.998784426] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7799 deviated from baseline 0.0711±0.0079 (z=89.9, confirmed x55) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.049727479] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7884 deviated from baseline 0.0711±0.0079 (z=91.0, confirmed x56) (sev=1.00)
+[perception_node-2] [INFO] [1790162512.070945764] [perception_node]: perception_node ready (lidar + camera -> /perception/obstacles)
+[monitor_node-6] [WARN] [1790162512.099367817] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.7968 deviated from baseline 0.0711±0.0079 (z=92.0, confirmed x57) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.149185800] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8055 deviated from baseline 0.0711±0.0079 (z=93.1, confirmed x58) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.199340915] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8139 deviated from baseline 0.0711±0.0079 (z=94.2, confirmed x59) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.223068863] [diagnostic_monitor]: ANOMALY on [perception_node] /perception/obstacles:obstacle_empty: Value 1.0000 deviated from baseline 0.0000±0.0001 (z=10000.0, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.250202896] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8227 deviated from baseline 0.0711±0.0079 (z=95.3, confirmed x60) (sev=1.00)
+[monitor_node-6] [WARN] [1790162512.298210340] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 0.8308 deviated from baseline 0.0711±0.0079 (z=96.3, confirmed x61) (sev=1.00)
+[monitor_node-6] [INFO] [1790162518.400557681] [diagnostic_monitor]: Anomaly window cleared. System operating nominally.
+[monitor_node-6] [WARN] [1790162801.751966504] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2712 deviated from baseline 0.0172±0.0012 (z=220.2, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.754496075] [diagnostic_monitor]: ANOMALY on [perception_node] /perception/obstacles:latency: Value 0.2589 deviated from baseline 0.0147±0.0033 (z=73.4, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.768591088] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2939 deviated from baseline 0.0108±0.0006 (z=465.2, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.770777299] [diagnostic_monitor]: ANOMALY on [lidar_node] /sim/lidar/scan:latency: Value 0.2754 deviated from baseline 0.0109±0.0010 (z=277.7, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.772218741] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3399 deviated from baseline 0.0109±0.0008 (z=405.2, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.774820019] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2831 deviated from baseline 0.0172±0.0012 (z=230.5, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.789832227] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2780 deviated from baseline 0.0108±0.0006 (z=439.1, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.868443992] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3012 deviated from baseline 0.0109±0.0008 (z=357.4, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.870786773] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.3318 deviated from baseline 0.0172±0.0012 (z=272.8, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.872068622] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.3007 deviated from baseline 0.0108±0.0006 (z=476.3, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.873444468] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3346 deviated from baseline 0.0109±0.0008 (z=398.6, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.887687374] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2989 deviated from baseline 0.0172±0.0012 (z=244.2, confirmed x5) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.890074305] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2784 deviated from baseline 0.0108±0.0006 (z=439.7, confirmed x5) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.903018467] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3148 deviated from baseline 0.0109±0.0008 (z=374.2, confirmed x5) (sev=1.00)
+[monitor_node-6] [INFO] [1790162801.932397837] [diagnostic_monitor]: 
+[monitor_node-6] ============================================================
+[monitor_node-6] ROOT CAUSE DIAGNOSIS: lidar_node (Confidence: 0.750)
+[monitor_node-6] ============================================================
+[monitor_node-6] Score Breakdown  R(C) = wD*D + wT*T + wS*S + wA*A:
+[monitor_node-6]   R(lidar_node) = 0.3·D(0.50) + 0.3·T(1.00) + 0.25·S(0.60) + 0.15·A(1.00) = 0.750
+[monitor_node-6]   - Dependency D: 0.50 (reaches 2 downstream anomalous node(s); 0 anomalous upstream node(s))
+[monitor_node-6]   - Temporal   T: 1.00 (first anomaly at t=1790162801.70s; earliest in window = supporting evidence, not proof of causality)
+[monitor_node-6]   - Symptom    S: 0.60 (explains 3/5 anomalous nodes)
+[monitor_node-6]   - Severity   A: 1.00 (max normalised severity on node, 1 direct anomaly event(s))
+[monitor_node-6] 
+[monitor_node-6] Propagation Chain (evidence-ordered, via discovered graph edges):
+[monitor_node-6]   lidar_node (t=1790162801.70s: /sim/lidar/scan:latency, sev=1.00)
+[monitor_node-6]     └─→ perception_node via /sim/lidar/scan (t=1790162801.70s, -0.00s after lidar_node: /perception/obstacles:latency)
+[monitor_node-6]       └─→ localization_node via /perception/obstacles (t=1790162801.70s, -0.00s after perception_node: /localization/pose:latency)
+[monitor_node-6]   (anomalous but not reachable from lidar_node: imu_node, odometry_node)
+[monitor_node-6] 
+[monitor_node-6] Candidate Ranking & Evidence Comparison:
+[monitor_node-6]   #2 imu_node             R=0.625 (Δ -0.125) [does not reach observed symptoms via dependency edges; lower symptom coverage (40% vs 60%)]
+[monitor_node-6]   #3 odometry_node        R=0.625 (Δ -0.125) [first anomaly 0.00s after lidar_node; does not reach observed symptoms via dependency edges; lower symptom coverage (40% vs 60%)]
+[monitor_node-6]   #4 perception_node      R=0.610 (Δ -0.140) [downstream of lidar_node in discovered graph; lower symptom coverage (40% vs 60%)]
+[monitor_node-6] ============================================================
+[monitor_node-6] [WARN] [1790162801.948468920] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.3121 deviated from baseline 0.0172±0.0012 (z=255.7, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.950252416] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2822 deviated from baseline 0.0108±0.0006 (z=446.0, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.964361832] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3160 deviated from baseline 0.0109±0.0008 (z=375.8, confirmed x6) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.967203187] [diagnostic_monitor]: ANOMALY on [control_node] /cmd_vel:latency: Value 0.3304 deviated from baseline 0.0920±0.0032 (z=73.9, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.980522783] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2848 deviated from baseline 0.0172±0.0012 (z=232.0, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.984225229] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2672 deviated from baseline 0.0108±0.0006 (z=421.4, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162801.998080576] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.3138 deviated from baseline 0.0109±0.0008 (z=373.1, confirmed x7) (sev=1.00)
+[monitor_node-6] [WARN] [1790162802.000435853] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2669 deviated from baseline 0.0172±0.0012 (z=216.5, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162802.001638379] [diagnostic_monitor]: ANOMALY on [imu_node] /sim/imu/data:latency: Value 0.2361 deviated from baseline 0.0108±0.0006 (z=370.3, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162802.003023313] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.2695 deviated from baseline 0.0109±0.0008 (z=318.5, confirmed x8) (sev=1.00)
+[monitor_node-6] [WARN] [1790162802.014479649] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:latency: Value 0.2313 deviated from baseline 0.0172±0.0012 (z=185.6, confirmed x9) (sev=1.00)
+[monitor_node-6] [WARN] [1790162802.016552744] [diagnostic_monitor]: ANOMALY on [odometry_node] /sim/odom:latency: Value 0.2337 deviated from baseline 0.0109±0.0008 (z=274.3, confirmed x9) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.015772248] [diagnostic_monitor]: ANOMALY on [control_node] message_timeout: Message timeout on /cmd_vel: no message for 221.24s (expected ~0.050s, threshold 0.45s, last seen t=1790162804.77) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.016776272] [diagnostic_monitor]: ANOMALY on [localization_node] message_timeout: Message timeout on /localization/pose: no message for 221.26s (expected ~0.050s, threshold 0.45s, last seen t=1790162804.75) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.017601994] [diagnostic_monitor]: ANOMALY on [perception_node] message_timeout: Message timeout on /perception/obstacles: no message for 221.27s (expected ~0.100s, threshold 0.45s, last seen t=1790162804.74) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.018292519] [diagnostic_monitor]: ANOMALY on [planning_node] message_timeout: Message timeout on /planning/path: no message for 221.31s (expected ~0.200s, threshold 0.60s, last seen t=1790162804.70) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.019041363] [diagnostic_monitor]: ANOMALY on [imu_node] message_timeout: Message timeout on /sim/imu/data: no message for 221.24s (expected ~0.050s, threshold 0.45s, last seen t=1790162804.77) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.019860390] [diagnostic_monitor]: ANOMALY on [odometry_node] message_timeout: Message timeout on /sim/odom: no message for 221.27s (expected ~0.050s, threshold 0.45s, last seen t=1790162804.74) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.020624714] [diagnostic_monitor]: ANOMALY on [lidar_node] message_timeout: Message timeout on /sim/lidar/scan: no message for 221.28s (expected ~0.100s, threshold 0.45s, last seen t=1790162804.73) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.021382047] [diagnostic_monitor]: ANOMALY on [camera_node] message_timeout: Message timeout on /sim/camera/image: no message for 221.25s (expected ~0.200s, threshold 0.60s, last seen t=1790162804.76) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.036735484] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 37.6620 deviated from baseline 0.0710±0.0069 (z=5447.8, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.050980225] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 37.5253 deviated from baseline 0.0710±0.0069 (z=5428.0, confirmed x3) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.099046148] [diagnostic_monitor]: ANOMALY on [localization_node] /localization/pose:pose_uncertainty: Value 37.5335 deviated from baseline 0.0710±0.0069 (z=5429.2, confirmed x4) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.107245905] [diagnostic_monitor]: ANOMALY on [planning_node] /planning/path:path_empty: Value 1.0000 deviated from baseline 0.0000±0.0001 (z=10000.0, confirmed x2) (sev=1.00)
+[monitor_node-6] [WARN] [1790163026.123994398] [diagnostic_monitor]: ANOMALY on [control_node] /cmd_vel:cmd_zero: Value 1.0000 deviated from baseline 0.0000±0.0001 (z=10000.0, confirmed x2) (sev=1.00)
+[monitor_node-6] [INFO] [1790163032.396861979] [diagnostic_monitor]: Anomaly window cleared. System operating nominally.
