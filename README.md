@@ -1,7 +1,7 @@
 # Dynamic Dependency-Aware Temporal RCA for ROS 2
 
 A ROS 2 diagnostic framework that discovers runtime node dependencies, correlates anomalies over time, and ranks probable root causes with supporting evidence.
-
+ 
 ## Prerequisites
 
 - Ubuntu 24.04
