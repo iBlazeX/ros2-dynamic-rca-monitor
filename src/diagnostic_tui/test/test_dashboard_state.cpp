@@ -178,6 +178,68 @@ TEST(SharedState, StaleDetection) {
   EXPECT_EQ(bad.snapshot(1.5).connection, ConnectionStatus::kError);
 }
 
+TEST(GraphView, MissingPublisherIsShownWithoutFakeLiveNode) {
+  const char* raw = R"JSON({
+    "schema_version": 1, "timestamp": 100.0, "monitor_uptime_sec": 20.0,
+    "system_status": "DEGRADED", "rca_window_sec": 6.0,
+    "counts": {"nodes": 1, "edges": 0, "topics": 1},
+    "nodes": [{"name": "obstacle_avoidance", "status": "NORMAL",
+               "in_ros_graph": true, "liveness": "ALIVE"}],
+    "edges": [],
+    "missing_dependencies": [
+      {"topic": "/scan", "subscribers": ["obstacle_avoidance"]}
+    ],
+    "anomalies": [], "timeline": []
+  })JSON";
+
+  SharedState shared(3.0);
+  ASSERT_TRUE(shared.update_from_json(raw, 100.0));
+  const auto snap = shared.snapshot(100.1);
+
+  ASSERT_EQ(snap.state.nodes.size(), 1u);
+  const GraphView graph_view = layout_graph(snap.state);
+  ASSERT_EQ(graph_view.layers.size(), 2u);
+  EXPECT_EQ(graph_view.layers[0].nodes.at(0).name, "/scan [missing publisher]");
+  EXPECT_EQ(graph_view.layers[0].nodes.at(0).status, "DEPENDENCY_MISSING");
+  EXPECT_EQ(graph_view.layers[1].nodes.at(0).name, "obstacle_avoidance");
+  EXPECT_EQ(snap.state.nodes[0].name, "obstacle_avoidance");
+  ASSERT_EQ(snap.state.missing_dependencies.size(), 1u);
+  EXPECT_EQ(snap.state.missing_dependencies[0].topic, "/scan");
+  ASSERT_EQ(snap.state.missing_dependencies[0].subscribers.size(), 1u);
+  EXPECT_EQ(snap.state.missing_dependencies[0].subscribers[0], "obstacle_avoidance");
+
+  UiOptions opt;
+  const std::string out = render_to_text(render_dashboard(snap, opt, 100.1), 170, 46);
+  EXPECT_NE(out.find("/scan [missing publisher]"), std::string::npos);
+  EXPECT_NE(out.find("missing input dependencies"), std::string::npos);
+  EXPECT_NE(out.find("/scan -- publisher unavailable --> obstacle_avoidance"), std::string::npos);
+  EXPECT_NE(out.find("missing inputs 1"), std::string::npos);
+
+  const char* diagnosed = R"JSON({
+    "schema_version": 1, "timestamp": 101.0, "system_status": "DEGRADED",
+    "counts": {"nodes": 1, "edges": 0, "topics": 1},
+    "nodes": [{"name": "obstacle_avoidance", "status": "ANOMALOUS",
+               "in_ros_graph": true, "liveness": "ALIVE"}],
+    "edges": [],
+    "missing_dependencies": [
+      {"topic": "/scan", "subscribers": ["obstacle_avoidance"]}
+    ],
+    "latest_diagnosis": {
+      "timestamp": 101.0, "root_cause": "/scan [missing publisher]", "confidence": 0.9,
+      "candidates": [{"node": "/scan [missing publisher]", "total": 0.9}]
+    },
+    "anomalies": [], "timeline": []
+  })JSON";
+  SharedState diagnosed_state(3.0);
+  ASSERT_TRUE(diagnosed_state.update_from_json(diagnosed, 101.0));
+  const auto diagnosed_graph = layout_graph(diagnosed_state.snapshot(101.1).state);
+  ASSERT_EQ(diagnosed_graph.layers.size(), 2u);
+  EXPECT_EQ(diagnosed_graph.layers[0].nodes.at(0).status, "DEPENDENCY_ROOT_CAUSE");
+  const std::string diagnosed_out =
+      render_to_text(render_dashboard(diagnosed_state.snapshot(101.1), opt, 101.1), 170, 46);
+  EXPECT_NE(diagnosed_out.find("[*] /scan [missing publisher]"), std::string::npos);
+}
+
 TEST(GraphView, LayeringFollowsReceivedEdgesOnly) {
   DashboardState s;
   ASSERT_TRUE(parse_dashboard_json(kFullState, s).ok);

@@ -106,6 +106,44 @@ def test_ablation_support(test_graph):
     assert diag_topo.root_cause == 'sensor_node'
 
 
+def test_missing_publisher_can_be_ranked_as_temporal_upstream_cause():
+    t0 = 500.0
+    graph = DependencyGraph()
+    graph.add_node('obstacle_avoidance')
+    graph.add_missing_dependency('/scan', ['obstacle_avoidance'])
+    anomalies = [
+        Anomaly(
+            t0 + 1.0, 'obstacle_avoidance', '/cmd_vel', '/cmd_vel:cmd_zero',
+            0.0, 0.0, 0.01, 10.0, 0.9, 'zero velocity',
+            onset_time=t0 + 1.0,
+        ),
+    ]
+
+    rca = RCAEngine(time_window_sec=5.0)
+    diagnosis = rca.diagnose(
+        anomalies, graph, current_time=t0 + 1.2,
+        missing_dependency_times={'/scan': t0},
+    )
+
+    assert diagnosis.root_cause == '/scan [missing publisher]'
+    assert diagnosis.candidates[0].reachable_anomalies == {'obstacle_avoidance'}
+    assert diagnosis.candidates[0].first_anomaly_time == t0
+
+    from diagnostic_monitor.explainer import Explainer
+    explanation = Explainer.explain(
+        diagnosis, graph, anomalies, missing_dependency_times={'/scan': t0}
+    )
+    assert 'publisher unavailable for /scan' in explanation
+    assert 'unavailable input /scan' in explanation
+    assert 'obstacle_avoidance' in explanation
+    assert diagnosis.propagation_chain == ['/scan [missing publisher]', 'obstacle_avoidance']
+
+    # Without a timestamp establishing that the missing input preceded the symptom,
+    # the system should not promote the missing publisher over direct anomaly evidence.
+    undated = rca.diagnose(anomalies, graph, current_time=t0 + 1.2)
+    assert undated.root_cause == 'obstacle_avoidance'
+
+
 def test_insufficient_evidence_handling(test_graph):
     rca = RCAEngine()
     diag = rca.diagnose([], test_graph, current_time=100.0)

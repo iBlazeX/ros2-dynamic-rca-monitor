@@ -43,6 +43,22 @@ def test_empty_state_is_waiting_and_valid():
     json.dumps(st)  # serialisable
 
 
+def test_missing_dependencies_are_published_without_fake_nodes():
+    g = DependencyGraph()
+    g.add_node('obstacle_avoidance')
+    g.add_missing_dependency('/scan', ['obstacle_avoidance'])
+
+    state = build_dashboard_state(100.0, g, [], None, EventTimeline())
+
+    assert state['counts']['nodes'] == 1
+    assert state['counts']['edges'] == 0
+    assert state['missing_dependencies'] == [
+        {'topic': '/scan', 'subscribers': ['obstacle_avoidance']},
+    ]
+    assert [node['name'] for node in state['nodes']] == ['obstacle_avoidance']
+    json.dumps(state)
+
+
 def test_normal_state_from_discovered_graph():
     g = _chain()
     st = build_dashboard_state(100.0, g, [], None, EventTimeline(), monitored_topics=4)

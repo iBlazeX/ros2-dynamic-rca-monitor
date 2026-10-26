@@ -105,6 +105,18 @@ ParseResult parse_dashboard_json(const std::string& json_text, DashboardState& o
   }
   if (s.counts.edges == 0) s.counts.edges = static_cast<int>(s.edges.size());
 
+  if (j.contains("missing_dependencies") && j["missing_dependencies"].is_array()) {
+    for (const auto& dependency : j["missing_dependencies"]) {
+      if (!dependency.is_object()) continue;
+      MissingDependencyInfo info;
+      info.topic = get_or<std::string>(dependency, "topic", "");
+      info.subscribers = string_list(dependency, "subscribers");
+      if (!info.topic.empty() && !info.subscribers.empty()) {
+        s.missing_dependencies.push_back(std::move(info));
+      }
+    }
+  }
+
   if (j.contains("anomalies") && j["anomalies"].is_array()) {
     for (const auto& a : j["anomalies"]) {
       if (!a.is_object()) continue;
@@ -231,6 +243,26 @@ GraphView layout_graph(const DashboardState& state) {
       }
     }
   }
+  // Render unavailable topics as explicitly virtual source boxes. They are not
+  // included in DashboardState.nodes/counts because they are not live ROS nodes.
+  for (const auto& dependency : state.missing_dependencies) {
+    NodeInfo ni;
+    ni.name = dependency.topic + " [missing publisher]";
+    ni.status = state.latest_diagnosis &&
+                state.latest_diagnosis->root_cause == ni.name
+                    ? "DEPENDENCY_ROOT_CAUSE" : "DEPENDENCY_MISSING";
+    ni.in_ros_graph = false;
+    ni.liveness = "UNKNOWN";
+    by_name[ni.name] = ni;
+    for (const auto& subscriber : dependency.subscribers) {
+      if (!by_name.count(subscriber)) {
+        NodeInfo subscriber_info;
+        subscriber_info.name = subscriber;
+        subscriber_info.status = "UNKNOWN";
+        by_name[subscriber] = subscriber_info;
+      }
+    }
+  }
   if (by_name.empty()) return view;
 
   // Longest-path layering via Kahn's algorithm (deterministic: names sorted).
@@ -242,6 +274,18 @@ GraphView layout_graph(const DashboardState& state) {
     if (e.from == e.to || !seen_edges.insert({e.from, e.to}).second) continue;
     succ[e.from].push_back(e.to);
     indegree[e.to]++;
+  }
+  // Add virtual layout relationships only; actual ROS-discovered edges remain untouched.
+  for (const auto& dependency : state.missing_dependencies) {
+    const std::string virtual_source = dependency.topic + " [missing publisher]";
+    for (const auto& subscriber : dependency.subscribers) {
+      if (virtual_source == subscriber || !by_name.count(subscriber) ||
+          !seen_edges.insert({virtual_source, subscriber}).second) {
+        continue;
+      }
+      succ[virtual_source].push_back(subscriber);
+      indegree[subscriber]++;
+    }
   }
   std::map<std::string, int> depth;
   std::vector<std::string> ready;
@@ -319,9 +363,9 @@ std::string format_clock(double unix_sec) {
 }
 
 std::string node_marker(const std::string& status) {
-  if (status == "ROOT_CAUSE") return "[*]";
+  if (status == "ROOT_CAUSE" || status == "DEPENDENCY_ROOT_CAUSE") return "[*]";
   if (status == "ANOMALOUS") return "[!]";
-  if (status == "MISSING") return "[X]";
+  if (status == "MISSING" || status == "DEPENDENCY_MISSING") return "[X]";
   if (status == "NORMAL") return "[ ]";
   return "[?]";
 }

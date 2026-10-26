@@ -25,6 +25,7 @@ Schema (version 1)
              "anomaly_count", "max_severity", "last_metric", "last_onset",
              "in_ros_graph": <bool>, "liveness": "ALIVE"|"STARVED"|"UNKNOWN"}],
   "edges": [{"from", "to", "topics": [..]}],
+  "missing_dependencies": [{"topic", "subscribers": [..]}],  # observed input gaps; no publisher node fabricated
   "anomalies": [{"node", "type", "timestamp", "onset_time", "severity", "value",
                  "description"}],                       # most recent first, bounded
   "latest_diagnosis": null | {"timestamp", "root_cause", "confidence",
@@ -236,6 +237,8 @@ def build_dashboard_state(
         'rca_window_sec': float(rca_window_sec),
         'nodes': nodes,
         'edges': [{'from': e['from'], 'to': e['to'], 'topics': list(e['topics'])} for e in gd['edges']],
+        # Unavailable inputs are explicit dependency records, not live ROS nodes or edges.
+        'missing_dependencies': gd.get('missing_dependencies', []),
         'anomalies': anomalies,
         'latest_diagnosis': diag,
         'timeline': timeline.items(),

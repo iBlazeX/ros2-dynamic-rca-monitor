@@ -122,6 +122,7 @@ class RCAEngine:
         anomalies: List[Anomaly],
         graph: DependencyGraph,
         current_time: float,
+        missing_dependency_times: Optional[Dict[str, float]] = None,
     ) -> DiagnosisResult:
         """Executes root-cause analysis on observed anomalies and dynamically discovered graph."""
         weights_dict = {
@@ -153,11 +154,20 @@ class RCAEngine:
 
         anomalous_nodes = set(node_anomalies.keys())
         num_anomalies = len(anomalous_nodes)
+        missing_times = missing_dependency_times or {}
 
-        # 1. Candidate Generation: anomalous nodes + all their upstream ancestors
+        # 1. Candidate Generation: anomalous nodes + all their upstream ancestors.
+        # Virtual missing-publisher sources are returned by graph.ancestors() only
+        # when their affected subscriber lies upstream of an observed anomaly.
         candidate_nodes = set(anomalous_nodes)
         for anom_node in anomalous_nodes:
-            candidate_nodes.update(graph.ancestors(anom_node))
+            for ancestor in graph.ancestors(anom_node):
+                missing_topic = graph.missing_dependency_topic(ancestor)
+                # An unavailable topic is a causal candidate only when its required
+                # status and onset were tracked by the monitor. Optional/unconfigured
+                # subscriber-only inputs remain graph evidence, not RCA causes.
+                if missing_topic is None or missing_topic in missing_times:
+                    candidate_nodes.add(ancestor)
 
         if not candidate_nodes:
             return DiagnosisResult(
@@ -187,9 +197,15 @@ class RCAEngine:
             reachable_anoms = c_desc & anomalous_nodes
             upstream_anoms = c_anc & anomalous_nodes
 
+            missing_topic = graph.missing_dependency_topic(c)
+            is_missing_dependency = missing_topic is not None
+
             # --- Dependency Score D(C) ---
-            # Interpretable: rewards reaching anomalous components, penalizes having upstream anomalous parents
-            if num_anomalies <= 1:
+            # Missing-input sources are scored by the fraction of observed anomaly
+            # nodes downstream of the unavailable input's subscribers.
+            if is_missing_dependency:
+                d_score = len(reachable_anoms) / max(1, num_anomalies)
+            elif num_anomalies <= 1:
                 d_score = 1.0 if c in anomalous_nodes else 0.5
             else:
                 max_possible_downstream = num_anomalies - (1 if c in anomalous_nodes else 0)
@@ -204,6 +220,16 @@ class RCAEngine:
                 dt = max(0.0, t_first_c - earliest_time)
                 # Linear decay over window
                 t_score = max(0.0, 1.0 - (dt / max(1.0, self.time_window_sec)))
+            elif is_missing_dependency:
+                # The first observed missing-publisher time is the candidate onset.
+                # An upstream condition observed before the first symptom receives
+                # the highest temporal score; later conditions are discounted.
+                t_first_c = missing_times.get(missing_topic)
+                if t_first_c is None:
+                    t_score = 0.05
+                else:
+                    dt = max(0.0, t_first_c - earliest_time)
+                    t_score = max(0.0, 1.0 - (dt / max(1.0, self.time_window_sec)))
             else:
                 t_first_c = None
                 # Penalize unobserved candidate that is only a graph ancestor
@@ -218,6 +244,11 @@ class RCAEngine:
             # --- Anomaly Severity A(C) ---
             if c in node_anomalies:
                 a_score = max(a.severity for a in node_anomalies[c])
+            elif is_missing_dependency:
+                # A virtual missing-input candidate has no direct sensor metric;
+                # use the maximum severity of the anomalies it can reach as impact evidence.
+                affected = [a.severity for a in recent_anomalies if a.node in c_desc]
+                a_score = max(affected, default=0.0)
             else:
                 a_score = 0.0
             a_score = max(0.0, min(1.0, a_score))

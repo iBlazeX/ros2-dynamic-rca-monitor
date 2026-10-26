@@ -20,7 +20,7 @@ constexpr int kSupportedSchemaVersion = 1;
 
 struct NodeInfo {
   std::string name;
-  std::string status;          // NORMAL | ANOMALOUS | ROOT_CAUSE | MISSING
+  std::string status;          // NORMAL | ANOMALOUS | ROOT_CAUSE | MISSING (plus UI-only dependency statuses)
   int anomaly_count = 0;
   double max_severity = 0.0;
   std::string last_metric;
@@ -37,6 +37,11 @@ struct EdgeInfo {
   std::string from;
   std::string to;
   std::vector<std::string> topics;
+};
+
+struct MissingDependencyInfo {
+  std::string topic;
+  std::vector<std::string> subscribers;
 };
 
 struct AnomalyInfo {
@@ -92,6 +97,8 @@ struct DashboardState {
   double rca_window_sec = 0.0;
   std::vector<NodeInfo> nodes;
   std::vector<EdgeInfo> edges;
+  // Subscriber-only inputs with no observed publisher; these are not live ROS nodes.
+  std::vector<MissingDependencyInfo> missing_dependencies;
   std::vector<AnomalyInfo> anomalies;
   std::optional<DiagnosisInfo> latest_diagnosis;
   std::vector<TimelineEvent> timeline;

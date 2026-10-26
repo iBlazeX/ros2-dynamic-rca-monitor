@@ -14,6 +14,8 @@ The project explores how changes in the ROS 2 communication graph can help expla
 
 - **Dynamic graph discovery:** Observe runtime relationships between ROS 2 nodes and topics.
 - **Missing-publisher detection:** Detect required topics that have subscribers but no discovered publisher.
+- **Explicit missing-input graph overlays:** Show unavailable topics linked to their real subscribers without inventing live publisher nodes.
+- **Temporal RCA for dependency gaps:** Consider a missing publisher as an upstream candidate when it precedes and reaches observed downstream anomalies.
 - **Configurable grace period:** Allow a configurable interval before reporting a missing publisher.
 - **Dependency availability tracking:** Track when required topic dependencies become unavailable and recover.
 - **Temporal event logging:** Record events such as missing-publisher observations, dependency unavailability, and recovery.
@@ -89,34 +91,35 @@ Exact package dependencies may vary with the ROS 2 distribution and workspace co
 ```bash
 cd ~/ros2_rca_ws
 source /opt/ros/jazzy/setup.bash
-colcon build --packages-select diagnostic_monitor --symlink-install
+colcon build --packages-up-to diagnostic_tui --symlink-install
 source install/setup.bash
 ```
 
 ## Run
 
-Launch the diagnostic monitor:
+Launch the diagnostic monitor, declaring `/scan` as a required topic with a two-second grace period:
 
 ```bash
-ros2 launch diagnostic_monitor monitor.launch.py
+ros2 launch diagnostic_monitor monitor.launch.py \
+  db_path:=/tmp/diagnostic_monitor.db \
+  simulator:=real_robot \
+  "required_topics:=['/scan']" \
+  missing_publisher_grace_sec:=2.0
 ```
 
-## Configuration
-
-The monitor supports required-topic detection through the `required_topics` and `missing_publisher_grace_sec` parameters.
-
-For example, to monitor `/scan` with a two-second grace period, use the appropriate node parameter overrides:
+In a separate terminal, launch the live TUI:
 
 ```bash
--p "required_topics:=['/scan']" \
--p missing_publisher_grace_sec:=2.0
+ros2 run diagnostic_tui rca_tui
 ```
+
+The graph panel distinguishes live ROS node/edge counts from virtual missing-input overlays. A virtual source such as `/scan [missing publisher]` represents an unavailable topic dependency, not a claim that a LiDAR node is running.
 
 ## Test
 
 ```bash
 cd ~/ros2_rca_ws
-colcon test --packages-select diagnostic_monitor --event-handlers console_direct+
+colcon test --packages-select diagnostic_monitor diagnostic_tui --event-handlers console_direct+
 colcon test-result --verbose
 ```
 

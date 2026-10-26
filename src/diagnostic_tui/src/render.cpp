@@ -29,8 +29,10 @@ std::string pad(std::string s, std::size_t w) {
 
 Color status_color(const std::string& status) {
   if (status == "ROOT_CAUSE") return Color::Red;
+  if (status == "DEPENDENCY_ROOT_CAUSE") return Color::Red;
   if (status == "ANOMALOUS") return Color::Yellow;
   if (status == "MISSING") return Color::Magenta;
+  if (status == "DEPENDENCY_MISSING") return Color::Magenta;
   if (status == "NORMAL") return Color::Green;
   return Color::GrayDark;
 }
@@ -52,13 +54,16 @@ Element node_box(const NodeInfo& n) {
   const Color c = status_color(n.status);
   Elements lines;
   Element title = text(node_marker(n.status) + " " + n.name) | bold | color(c);
-  if (n.status == "ROOT_CAUSE") title = title | inverted;
+  if (n.status == "ROOT_CAUSE" || n.status == "DEPENDENCY_ROOT_CAUSE") title = title | inverted;
   lines.push_back(title);
   if (n.status == "ANOMALOUS" || n.status == "ROOT_CAUSE") {
     lines.push_back(text(" " + n.last_metric + "  sev " + fmt(n.max_severity) + "  x" +
                          std::to_string(n.anomaly_count)) | color(c));
   } else if (n.status == "MISSING") {
     lines.push_back(text(" no data (runtime starvation)") | color(c));
+  } else if (n.status == "DEPENDENCY_MISSING" ||
+             n.status == "DEPENDENCY_ROOT_CAUSE") {
+    lines.push_back(text(" publisher unavailable (virtual input)") | color(c));
   } else if (n.status == "NORMAL") {
     lines.push_back(text(" nominal") | dim);
   } else {
@@ -93,9 +98,13 @@ Element render_header(const Snapshot& snap, double /*now_sec*/) {
     const auto& s = snap.state;
     info.push_back(text(" SYSTEM " + s.system_status + " ") | bold | color(system_color(s.system_status)) | inverted);
     info.push_back(text("  backend " + s.simulator + " ") | dim);
-    info.push_back(text("  nodes " + std::to_string(s.counts.nodes) +
-                        "  edges " + std::to_string(s.counts.edges) +
+    info.push_back(text("  live nodes " + std::to_string(s.counts.nodes) +
+                        "  live edges " + std::to_string(s.counts.edges) +
                         "  topics " + std::to_string(s.counts.topics)));
+    if (!s.missing_dependencies.empty()) {
+      info.push_back(text("  missing inputs " + std::to_string(s.missing_dependencies.size())) |
+                     color(Color::Magenta) | bold);
+    }
     info.push_back(text("  anomalies(window) " + std::to_string(s.counts.anomalies_in_window) +
                         "  anomalous nodes " + std::to_string(s.counts.anomalous_nodes)) |
                    color(s.counts.anomalies_in_window ? Color::Yellow : Color::GrayLight));
@@ -115,7 +124,7 @@ Element render_header(const Snapshot& snap, double /*now_sec*/) {
 
 Element render_graph(const Snapshot& snap, bool focused) {
   if (!snap.has_state || snap.state.nodes.empty()) {
-    return panel("DEPENDENCY GRAPH (discovered at runtime)",
+    return panel("DEPENDENCY GRAPH (live graph + missing-input overlays)",
                  vbox({text(""), text("  waiting for graph discovery ...") | dim, filler()}), focused);
   }
   const GraphView view = layout_graph(snap.state);
@@ -134,12 +143,24 @@ Element render_graph(const Snapshot& snap, bool focused) {
     for (std::size_t k = 0; k < e.topics.size(); ++k) topics += (k ? ", " : "") + e.topics[k];
     edge_lines.push_back(text("  " + e.from + " -> " + e.to + "   via " + topics) | dim);
   }
+  Elements missing_lines;
+  if (snap.state.missing_dependencies.empty()) {
+    missing_lines.push_back(text("  none") | dim);
+  } else {
+    for (const auto& dependency : snap.state.missing_dependencies) {
+      for (const auto& subscriber : dependency.subscribers) {
+        missing_lines.push_back(
+            text("  [X] " + dependency.topic + " -- publisher unavailable --> " + subscriber) |
+            color(Color::Magenta));
+      }
+    }
+  }
   if (!view.cycle_nodes.empty()) {
     edge_lines.push_back(text("  (cycle detected; nodes shown in trailing column)") | color(Color::Yellow));
   }
   Element legend = hbox({
       text("  [ ] normal ") | color(Color::Green), text(" [!] anomalous ") | color(Color::Yellow),
-      text(" [*] probable root cause ") | color(Color::Red), text(" [X] starved ") | color(Color::Magenta),
+      text(" [*] probable root cause ") | color(Color::Red), text(" [X] starved / missing input ") | color(Color::Magenta),
       text(" [?] unknown") | color(Color::GrayDark),
       text("   | each node shows ROS graph membership / runtime liveness") | dim});
   Element body = vbox({
@@ -149,6 +170,9 @@ Element render_graph(const Snapshot& snap, bool focused) {
       separator(),
       text("  edges (dynamic ROS 2 graph discovery):") | bold,
       vbox(edge_lines),
+      separator(),
+      text("  missing input dependencies (not live publisher nodes):") | bold,
+      vbox(missing_lines),
       filler(),
       legend,
   });
