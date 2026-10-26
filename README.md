@@ -91,7 +91,7 @@ Exact package dependencies may vary with the ROS 2 distribution and workspace co
 ```bash
 cd ~/ros2_rca_ws
 source /opt/ros/jazzy/setup.bash
-colcon build --packages-up-to diagnostic_tui --symlink-install
+colcon build --packages-select diagnostic_monitor diagnostic_tui --symlink-install
 source install/setup.bash
 ```
 
