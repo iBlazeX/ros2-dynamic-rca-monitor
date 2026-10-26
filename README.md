@@ -1,105 +1,144 @@
-# Dynamic Dependency-Aware Temporal RCA for ROS 2
+# ROS 2 Dynamic Temporal RCA
 
-A ROS 2 diagnostic framework that discovers runtime node dependencies, correlates anomalies over time, and ranks probable root causes with supporting evidence.
- 
-## Prerequisites
+A ROS 2 diagnostic monitoring framework for tracking system health, detecting runtime dependency failures, and investigating potential root causes through dynamic graph analysis and temporal event correlation.
 
-- Ubuntu 24.04
-- ROS 2 Jazzy
-- Git, `colcon`, and `rosdep`
+## Overview
 
-## Setup
+ROS 2 systems are composed of interconnected nodes and topics whose runtime relationships can change as components start, stop, or fail. Diagnosing a failure requires more than identifying an unhealthy node: it also requires understanding how the system's dependencies changed over time.
 
-### 1. Install dependencies
+**ROS 2 Dynamic Temporal RCA** aims to make these relationships observable by combining runtime graph discovery, diagnostic monitoring, and a timeline of system events.
+
+The project explores how changes in the ROS 2 communication graph can help explain failures and identify potentially affected components.
+
+## Key Features
+
+- **Dynamic graph discovery:** Observe runtime relationships between ROS 2 nodes and topics.
+- **Missing-publisher detection:** Detect required topics that have subscribers but no discovered publisher.
+- **Configurable grace period:** Allow a configurable interval before reporting a missing publisher.
+- **Dependency availability tracking:** Track when required topic dependencies become unavailable and recover.
+- **Temporal event logging:** Record events such as missing-publisher observations, dependency unavailability, and recovery.
+- **ROS 2 diagnostics integration:** Monitor system health and expose diagnostic information.
+- **Graceful handling of incomplete discovery:** Avoid treating incomplete graph-discovery results as confirmed failures.
+
+## Architecture
+
+The framework is organized around a few core components:
+
+| Component | Responsibility |
+|---|---|
+| `RosGraphDiscoverer` | Discovers the runtime ROS 2 communication graph and missing-publisher conditions. |
+| `MissingPublisherTracker` | Tracks missing-publisher states and their duration. |
+| `MonitorNode` | Coordinates monitoring, graph updates, and event generation. |
+| Timeline events | Record dependency failures and recovery for temporal analysis. |
+
+The overall workflow is:
+
+1. Discover the current ROS 2 graph.
+2. Compare discovered publishers and subscribers against configured requirements.
+3. Track missing publishers across successive discovery cycles.
+4. Report dependency failures after the configured grace period.
+5. Record recovery when the missing publisher reappears.
+6. Use graph changes and event timing to support root-cause investigation.
+
+## Example: Missing Publisher Detection
+
+Suppose a subscriber depends on `/scan`, but no publisher for that topic is available.
+
+When `/scan` is configured as a required topic, the monitor can track the missing publisher and report the dependency as unavailable after the grace period.
+
+When a publisher becomes visible again, the monitor records a recovery event.
+
+Relevant timeline events include:
+
+- `missing_publisher_observed`
+- `required_dependency_unavailable`
+- `missing_publisher_cleared`
+
+This helps distinguish a temporary discovery gap from a sustained dependency failure.
+
+## Configuration
+
+The monitor supports the following parameters for required-topic monitoring:
+
+| Parameter | Purpose |
+|---|---|
+| `required_topics` | List of topics that are expected to have publishers. |
+| `missing_publisher_grace_sec` | Grace period before a missing publisher is reported as unavailable. |
+
+Example ROS 2 parameter overrides:
 
 ```bash
-sudo apt update
-sudo apt install -y git python3-rosdep \
-  python3-colcon-common-extensions \
-  python3-pytest build-essential
+-p "required_topics:=['/scan']" \
+-p missing_publisher_grace_sec:=2.0
 ```
 
-Install [ROS 2 Jazzy](https://docs.ros.org/en/jazzy/Installation.html) if it is not already installed.
+Use these overrides with the appropriate launch or node command for your workspace.
 
-### 2. Clone the repository
+## Requirements
+
+- ROS 2
+- Python 3
+- `colcon`
+- `pytest`
+- A ROS 2 workspace configured for the target distribution
+
+Exact package dependencies may vary with the ROS 2 distribution and workspace configuration.
+
+## Build
 
 ```bash
-mkdir -p ~/ros2_rca_ws
 cd ~/ros2_rca_ws
-
-git clone https://github.com/iBlazeX/ros2-dynamic-temporal-rca.git .
-```
-
-### 3. Install ROS dependencies
-
-```bash
-sudo rosdep init 2>/dev/null || true
-rosdep update
-
 source /opt/ros/jazzy/setup.bash
-rosdep install --from-paths src --ignore-src -r -y
-```
-
-### 4. Build the workspace
-
-```bash
-colcon build --symlink-install
+colcon build --packages-select diagnostic_monitor --symlink-install
 source install/setup.bash
 ```
 
-## Run `rca_sim`
+## Run
 
-Start the simulation:
+Launch the diagnostic monitor:
 
 ```bash
-scripts/sim.sh start
+ros2 launch diagnostic_monitor monitor.launch.py
 ```
 
-In a second terminal, source the environment and launch the diagnostic dashboard:
+## Configuration
+
+The monitor supports required-topic detection through the `required_topics` and `missing_publisher_grace_sec` parameters.
+
+For example, to monitor `/scan` with a two-second grace period, use the appropriate node parameter overrides:
+
+```bash
+-p "required_topics:=['/scan']" \
+-p missing_publisher_grace_sec:=2.0
+```
+
+## Test
 
 ```bash
 cd ~/ros2_rca_ws
-source /opt/ros/jazzy/setup.bash
-source install/setup.bash
-
-ros2 run diagnostic_tui rca_tui
+colcon test --packages-select diagnostic_monitor --event-handlers console_direct+
+colcon test-result --verbose
 ```
 
-## Inject a Test Fault
+## Research Direction
 
-Inject a temporary LiDAR latency fault:
+The project's central research direction is **dynamic graph analysis with temporal root-cause analysis for ROS 2 systems**.
 
-```bash
-ros2 run rca_test_system fault_injector \
-  --target lidar_node \
-  --type latency \
-  --param 0.4 \
-  --duration 10
-```
+Potential research questions include:
 
-Observe the detected anomalies, runtime dependency graph, and probable root-cause diagnosis in the dashboard.
+- How can runtime graph changes help distinguish primary failures from downstream symptoms?
+- How can temporal relationships between diagnostic events improve root-cause localization?
+- How should incomplete graph discovery be handled to reduce false failure reports?
+- How can dependency recovery events help reconstruct the progression of a failure?
 
-## Inspect Diagnostic Results
+These questions provide a foundation for evaluating the framework using controlled fault-injection experiments and representative ROS 2 workloads.
 
-```bash
-ros2 run diagnostic_monitor rca_cli --action graph
-ros2 run diagnostic_monitor rca_cli --action latest
-ros2 run diagnostic_monitor rca_cli --action summary
-```
+## Project Status
 
-## Real Robot Integration
+The framework includes dynamic graph monitoring, required-topic missing-publisher tracking, timeline event generation, and automated tests.
 
-The monitor can be adapted to observe a real ROS 2 robot by discovering its runtime graph and monitoring its published topics. Begin with read-only monitoring before attempting controlled fault experiments.
+Temporal root-cause localization beyond event tracking should be treated as ongoing research until implemented and evaluated.
 
-## Project Structure
+## Contributing
 
-- `src/` : ROS 2 packages, simulation, monitoring, and diagnosis
-- `scripts/` : Startup, benchmarking, and verification tools
-- `runs/` : Experiment results and recorded evidence
-
-## Notes
-
-- Source the ROS environment and workspace in every new terminal.
-- `rca_sim` is the simulation backend.
-- Supported fault targets and types depend on the implementation.
-- Root-cause results represent evidence-based rankings, not guaranteed proof of causality.
+Contributions, bug reports, and suggestions are welcome. When proposing changes, include the relevant test cases and steps to reproduce the behavior.
