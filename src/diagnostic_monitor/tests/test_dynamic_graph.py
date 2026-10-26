@@ -122,3 +122,62 @@ def test_discovery_includes_only_application_dataflow_participants():
     # a node that later gains an application subscription joins the graph
     ros._subs['/sensor/scan'].append('idle_tool')
     assert 'idle_tool' in RosGraphDiscoverer.discover(ros).nodes
+
+
+def test_discover_missing_publishers_reports_subscriber_only_topics():
+    ros = _FakeRosNode(
+        nodes=['sensor_node', 'perception_node', 'healthy_publisher'],
+        topics=['/scan', '/healthy', '/rca/dashboard_state', '/rosout'],
+        pubs={
+            '/healthy': ['healthy_publisher'],
+            '/rca/dashboard_state': ['diagnostic_monitor'],
+            '/rosout': ['sensor_node'],
+        },
+        subs={
+            '/scan': ['perception_node', 'sensor_node'],
+            '/healthy': ['perception_node'],
+            '/rca/dashboard_state': ['rca_tui'],
+            '/rosout': ['perception_node'],
+        },
+    )
+
+    missing = RosGraphDiscoverer.discover_missing_publishers(ros)
+
+    assert missing == {
+        '/scan': ['perception_node', 'sensor_node'],
+    }
+
+
+def test_discover_missing_publishers_ignores_excluded_subscriber_nodes():
+    ros = _FakeRosNode(
+        nodes=['diagnostic_monitor', 'fault_injector', 'experiment_controller'],
+        topics=['/scan', '/rca/dashboard_state'],
+        pubs={},
+        subs={
+            '/scan': [
+                'diagnostic_monitor',
+                'fault_injector',
+                'experiment_controller',
+                '_ros2cli_123',
+                '_NODE_NAME_UNKNOWN_',
+            ],
+            '/rca/dashboard_state': ['rca_tui'],
+        },
+    )
+
+    assert RosGraphDiscoverer.discover_missing_publishers(ros) == {}
+
+
+def test_discover_missing_publishers_skips_incomplete_endpoint_data():
+    class _FailingPublisherQueryNode(_FakeRosNode):
+        def get_publishers_info_by_topic(self, t):
+            raise RuntimeError('publisher endpoint query failed')
+
+    ros = _FailingPublisherQueryNode(
+        nodes=['perception_node'],
+        topics=['/scan'],
+        pubs={},
+        subs={'/scan': ['perception_node']},
+    )
+
+    assert RosGraphDiscoverer.discover_missing_publishers(ros) is None

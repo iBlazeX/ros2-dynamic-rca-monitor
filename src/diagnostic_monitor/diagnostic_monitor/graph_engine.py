@@ -243,3 +243,52 @@ class RosGraphDiscoverer:
             graph.add_edge(u, v, topic)
 
         return graph
+
+    @classmethod
+    def discover_missing_publishers(
+        cls, ros_node
+    ) -> Optional[Dict[str, List[str]]]:
+        """Return application topics with subscribers but no eligible publishers.
+
+        Maps each topic to its sorted eligible subscriber node names.
+        This reports an observed dependency gap, not a confirmed fault.
+        """
+        try:
+            topic_names_and_types = ros_node.get_topic_names_and_types()
+        except Exception as e:
+            ros_node.get_logger().error(
+                f'Failed to get topic names for missing-publisher discovery: {e}'
+            )
+            return None
+
+        missing = {}
+        for topic_name, _ in topic_names_and_types:
+            if cls.should_ignore_topic(topic_name):
+                continue
+
+            try:
+                pubs = ros_node.get_publishers_info_by_topic(topic_name)
+                subs = ros_node.get_subscriptions_info_by_topic(topic_name)
+            except Exception:
+                # Incomplete discovery cannot establish recovery.
+                return None
+
+            publisher_nodes = {
+                endpoint.node_name
+                for endpoint in pubs
+                if not cls.should_ignore_node(endpoint.node_name)
+            }
+
+            subscriber_nodes = sorted(
+                {
+                    endpoint.node_name
+                    for endpoint in subs
+                    if not cls.should_ignore_node(endpoint.node_name)
+                },
+                key=lambda node_name: node_name,
+            )
+
+            if subscriber_nodes and not publisher_nodes:
+                missing[topic_name] = subscriber_nodes
+
+        return dict(sorted(missing.items(), key=lambda item: item[0]))

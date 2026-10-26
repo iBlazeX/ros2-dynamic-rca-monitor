@@ -13,6 +13,7 @@ import math
 import time
 from typing import Any, Dict, List, Optional
 
+
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
@@ -24,6 +25,7 @@ from .db_path import ensure_parent_dir, resolve_db_path
 from .event_store import EventStore
 from .explainer import Explainer
 from .graph_engine import DependencyGraph, RosGraphDiscoverer
+from .missing_publisher_tracker import MissingPublisherTracker
 from .rca_engine import RCAEngine
 
 
@@ -51,6 +53,8 @@ class DiagnosticMonitorNode(Node):
         # Deployment-specific monitoring exclusions (raw simulator transport etc.)
         self.declare_parameter('excluded_topic_prefixes', [''])
         self.declare_parameter('excluded_node_names', [''])
+        self.declare_parameter('required_topics', [''])
+        self.declare_parameter('missing_publisher_grace_sec', 2.0)
         self.declare_parameter('dashboard_heartbeat_sec', 1.0)
         self.declare_parameter('dashboard_min_interval_sec', 0.5)
 
@@ -83,6 +87,12 @@ class DiagnosticMonitorNode(Node):
         extra_topics, extra_nodes = RosGraphDiscoverer.configure(
             topic_prefixes=list(self.get_parameter('excluded_topic_prefixes').value or []),
             node_names=list(self.get_parameter('excluded_node_names').value or []),
+        )
+        self.missing_publisher_tracker = MissingPublisherTracker(
+            required_topics=list(self.get_parameter('required_topics').value or []),
+            grace_period_sec=float(
+                self.get_parameter('missing_publisher_grace_sec').value
+            ),
         )
         if extra_topics or extra_nodes:
             self.get_logger().info(
@@ -151,6 +161,53 @@ class DiagnosticMonitorNode(Node):
         """Periodically discovers live computational graph without hardcoding."""
         now_time = time.time()
         live_graph = RosGraphDiscoverer.discover(self)
+
+        # Track missing publishers separately from conventional node anomalies.
+        # None means discovery was incomplete, so preserve the previous state.
+        missing_publishers = RosGraphDiscoverer.discover_missing_publishers(self)
+
+        if missing_publishers is not None:
+            events = self.missing_publisher_tracker.update(
+                missing_publishers,
+                now=time.monotonic(),
+            )
+
+            for event in events:
+                topic = event['topic']
+                subscribers = ', '.join(event.get('subscribers', []))
+                duration = float(event.get('duration_sec', 0.0))
+                event_type = event['event']
+
+                if event_type == 'missing_publisher_observed':
+                    severity = 0.0
+                    message = (
+                        f'No publisher observed for {topic}; '
+                        f'subscribers: {subscribers}'
+                    )
+
+                elif event_type == 'required_dependency_unavailable':
+                    severity = 0.5
+                    message = (
+                        f'Required topic {topic} has no publisher for '
+                        f'{duration:.1f}s; subscribers: {subscribers}'
+                    )
+                    self.get_logger().warning(message)
+
+                else:  # missing_publisher_cleared
+                    severity = 0.0
+                    message = (
+                        f'Missing-publisher condition cleared for {topic} '
+                        f'after {duration:.1f}s; subscribers: {subscribers}'
+                    )
+
+                self.timeline.add(
+                    time.time(),
+                    topic,
+                    event_type,
+                    severity,
+                    message,
+                )
+                self.dashboard_dirty = True
         # ROS graph membership as of this sweep, kept separate from runtime
         # liveness: a crashed process lingers here until its DDS lease expires.
         self.live_graph_nodes = set(live_graph.nodes)
