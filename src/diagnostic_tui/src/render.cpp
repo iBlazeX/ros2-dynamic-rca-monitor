@@ -98,13 +98,11 @@ Element render_header(const Snapshot& snap, double /*now_sec*/) {
     const auto& s = snap.state;
     info.push_back(text(" SYSTEM " + s.system_status + " ") | bold | color(system_color(s.system_status)) | inverted);
     info.push_back(text("  backend " + s.simulator + " ") | dim);
-    info.push_back(text("  live nodes " + std::to_string(s.counts.nodes) +
-                        "  live edges " + std::to_string(s.counts.edges) +
+    // Keep the global status row compact so state-age/rejection diagnostics
+    // remain visible on narrow terminals. Missing-input counts live in the graph panel.
+    info.push_back(text("  nodes " + std::to_string(s.counts.nodes) +
+                        "  edges " + std::to_string(s.counts.edges) +
                         "  topics " + std::to_string(s.counts.topics)));
-    if (!s.missing_dependencies.empty()) {
-      info.push_back(text("  missing inputs " + std::to_string(s.missing_dependencies.size())) |
-                     color(Color::Magenta) | bold);
-    }
     info.push_back(text("  anomalies(window) " + std::to_string(s.counts.anomalies_in_window) +
                         "  anomalous nodes " + std::to_string(s.counts.anomalous_nodes)) |
                    color(s.counts.anomalies_in_window ? Color::Yellow : Color::GrayLight));
@@ -171,12 +169,16 @@ Element render_graph(const Snapshot& snap, bool focused) {
       text("  edges (dynamic ROS 2 graph discovery):") | bold,
       vbox(edge_lines),
       separator(),
-      text("  missing input dependencies (not live publisher nodes):") | bold,
+      text("  missing input dependencies" +
+           (snap.state.missing_dependencies.empty()
+                ? " (not live publisher nodes):"
+                : " (missing inputs " + std::to_string(snap.state.missing_dependencies.size()) +
+                  "; not live publisher nodes):")) | bold,
       vbox(missing_lines),
       filler(),
       legend,
   });
-  return panel("DEPENDENCY GRAPH (discovered at runtime)", body, focused);
+  return panel("DEPENDENCY GRAPH (live graph + missing-input overlays)", body, focused);
 }
 
 Element render_diagnosis(const Snapshot& snap, const UiOptions& opt, bool focused) {
