@@ -26,6 +26,7 @@ Schema (version 1)
              "in_ros_graph": <bool>, "liveness": "ALIVE"|"STARVED"|"UNKNOWN"}],
   "edges": [{"from", "to", "topics": [..]}],
   "missing_dependencies": [{"topic", "subscribers": [..]}],  # observed input gaps; no publisher node fabricated
+  "required_dependencies_unavailable": [<topic>, ...],      # required inputs past their grace period
   "anomalies": [{"node", "type", "timestamp", "onset_time", "severity", "value",
                  "description"}],                       # most recent first, bounded
   "latest_diagnosis": null | {"timestamp", "root_cause", "confidence",
@@ -54,9 +55,9 @@ difference instead of being told a crashed node vanished instantly.
 
 ``system_status`` semantics (no causal claim, purely observational):
   WAITING    – graph not discovered yet / detector still warming up
-  NORMAL     – no anomaly in the RCA window, no active diagnosis
-  DEGRADED   – anomalies in the window and fresh evidence (< recovering_after_sec old)
-  RECOVERING – anomalies still in the window but no fresh evidence; the window is draining
+  NORMAL     – no recent anomaly and no active required dependency unavailable
+  DEGRADED   – a required dependency passed its grace period, or fresh anomaly evidence
+  RECOVERING – anomalies remain in the window but no fresh evidence; the window is draining
 """
 
 from collections import deque
@@ -132,9 +133,12 @@ def system_status(
     warmed_up: bool,
     recent: List[Anomaly],
     recovering_after_sec: float = 2.0,
+    required_dependencies_unavailable: Iterable[str] = (),
 ) -> str:
     if not graph_ready or not warmed_up:
         return 'WAITING'
+    if set(required_dependencies_unavailable):
+        return 'DEGRADED'
     if not recent:
         return 'NORMAL'
     last_record = max(a.timestamp for a in recent)
@@ -183,9 +187,11 @@ def build_dashboard_state(
     rca_window_sec: float = 6.0,
     simulator: str = 'unknown',
     ros_graph_nodes: Optional[Iterable[str]] = None,
+    required_dependencies_unavailable: Iterable[str] = (),
 ) -> Dict[str, Any]:
     """Builds the schema-version-1 dashboard document from the monitor's live view."""
     gd = graph.to_dict()
+    required_unavailable = sorted(set(required_dependencies_unavailable))
     missing = set(missing_nodes)
     diag = diagnosis_to_dict(diagnosis)
     root = diag['root_cause'] if diag else None
@@ -224,7 +230,10 @@ def build_dashboard_state(
         'timestamp': now,
         'simulator': str(simulator or 'unknown'),
         'monitor_uptime_sec': round(max(0.0, now - monitor_start_time), 1) if monitor_start_time else 0.0,
-        'system_status': system_status(now, bool(gd['nodes']), warmed_up, recent_anomalies),
+        'system_status': system_status(
+            now, bool(gd['nodes']), warmed_up, recent_anomalies,
+            required_dependencies_unavailable=required_unavailable,
+        ),
         'counts': {
             'nodes': len(gd['nodes']),
             'edges': len(gd['edges']),
@@ -239,6 +248,7 @@ def build_dashboard_state(
         'edges': [{'from': e['from'], 'to': e['to'], 'topics': list(e['topics'])} for e in gd['edges']],
         # Unavailable inputs are explicit dependency records, not live ROS nodes or edges.
         'missing_dependencies': gd.get('missing_dependencies', []),
+        'required_dependencies_unavailable': required_unavailable,
         'anomalies': anomalies,
         'latest_diagnosis': diag,
         'timeline': timeline.items(),
