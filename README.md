@@ -50,6 +50,8 @@ When `/scan` is configured as a required topic, the monitor can track the missin
 
 When a publisher becomes visible again, the monitor records a recovery event.
 
+Once a configured required topic exceeds its grace period without a publisher, the dashboard status becomes **DEGRADED**, even if a downstream anomaly has not yet been detected. The missing-input overlay remains separate from live node and edge counts.
+
 Relevant timeline events include:
 
 - `missing_publisher_observed`
