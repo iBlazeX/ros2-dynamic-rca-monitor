@@ -382,9 +382,17 @@ class DiagnosticMonitorNode(Node):
             tw = msg.twist if hasattr(msg, 'twist') else msg
             v, w = float(tw.linear.x), float(tw.angular.z)
             self._metric(now_time, node_name, topic_name, 'linear_vel', v)
-            # validity indicator: an exactly-zero command is a commanded stop
-            self._metric(now_time, node_name, topic_name, 'cmd_zero',
-                         1.0 if (abs(v) < 1e-6 and abs(w) < 1e-6) else 0.0)
+            # Record zero commands as telemetry, but do not feed this binary state
+            # into generic baseline anomaly detection. A stop is often intentional
+            # (startup, obstacle avoidance, or safety handling), and treating the
+            # normal 0<->1 transition as an anomaly creates false RCA diagnoses.
+            self.event_store.insert_telemetry(
+                now_time,
+                node_name,
+                topic_name,
+                'cmd_zero',
+                1.0 if (abs(v) < 1e-6 and abs(w) < 1e-6) else 0.0,
+            )
 
     def _record_anomaly(self, anom: Anomaly):
         self.event_store.insert_anomaly(
