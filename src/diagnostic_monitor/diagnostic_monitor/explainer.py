@@ -8,7 +8,7 @@ Temporal ordering is presented as *supporting evidence* for a probable root
 cause, never as proof of causality.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from .anomaly_detector import Anomaly
 from .graph_engine import DependencyGraph
 from .rca_engine import DiagnosisResult
@@ -22,6 +22,7 @@ class Explainer:
         root_cause: str,
         graph: DependencyGraph,
         anomalies: List[Anomaly],
+        missing_dependency_times: Optional[Dict[str, float]] = None,
     ) -> Tuple[List[str], List[str]]:
         """Finds the ordered failure propagation from root cause through reachable anomalous nodes.
 
@@ -33,9 +34,19 @@ class Explainer:
             node_anoms.setdefault(a.node, []).append(a)
 
         chain_nodes = [root_cause]
+        missing_times = missing_dependency_times or {}
+        missing_topic = graph.missing_dependency_topic(root_cause)
         if root_cause not in node_anoms:
-            # Candidate has no direct anomaly (e.g. silent upstream fault)
-            chain = [f'{root_cause} (graph ancestor: no direct anomaly observed)']
+            if missing_topic is not None:
+                observed_at = missing_times.get(missing_topic)
+                timing = f'; first observed t={observed_at:.2f}s' if observed_at is not None else ''
+                chain = [
+                    f'{root_cause} (publisher unavailable for {missing_topic}{timing}; '
+                    f'virtual dependency candidate, not a live ROS node)'
+                ]
+            else:
+                # Candidate has no direct anomaly (e.g. silent upstream fault)
+                chain = [f'{root_cause} (graph ancestor: no direct anomaly observed)']
         else:
             first_a = min(node_anoms[root_cause], key=lambda x: x.onset)
             chain = [f'{root_cause} (t={first_a.onset:.2f}s: {first_a.metric}, sev={first_a.severity:.2f})']
@@ -53,11 +64,18 @@ class Explainer:
                         next_layer.append(v)
                         chain_nodes.append(v)
                         first_v = min(node_anoms[v], key=lambda x: x.onset)
-                        t_u = (min(node_anoms[u], key=lambda x: x.onset).onset
-                               if u in node_anoms else first_v.onset)
+                        t_u = (
+                            min(node_anoms[u], key=lambda x: x.onset).onset
+                            if u in node_anoms
+                            else missing_times.get(graph.missing_dependency_topic(u), first_v.onset)
+                        )
                         dt = first_v.onset - t_u
                         edge_topics = graph.edge_topics.get((u, v), set())
-                        topic_str = f' via {", ".join(sorted(edge_topics))}' if edge_topics else ''
+                        if edge_topics:
+                            topic_str = f' via {", ".join(sorted(edge_topics))}'
+                        else:
+                            missing_input = graph.missing_dependency_topic(u)
+                            topic_str = f' via unavailable input {missing_input}' if missing_input else ''
                         indent = '  ' * depth
                         chain.append(
                             f'{indent}└─→ {v}{topic_str} (t={first_v.onset:.2f}s, '
@@ -74,6 +92,7 @@ class Explainer:
         result: DiagnosisResult,
         graph: DependencyGraph,
         anomalies: List[Anomaly],
+        missing_dependency_times: Optional[Dict[str, float]] = None,
     ) -> str:
         """Generates a complete narrative explanation of the diagnosis.
 
@@ -84,6 +103,8 @@ class Explainer:
 
         top = result.candidates[0]
         n_anom = max(1, len(result.anomalous_nodes))
+        missing_times = missing_dependency_times or {}
+        top_missing_topic = graph.missing_dependency_topic(top.node)
         lines = []
         lines.append('=' * 60)
         lines.append(f'ROOT CAUSE DIAGNOSIS: {top.node} (Confidence: {top.total_score:.3f})')
@@ -102,7 +123,14 @@ class Explainer:
             f'  - Dependency D: {top.d_score:.2f} (reaches {len(top.reachable_anomalies)} downstream '
             f'anomalous node(s); {len(top.upstream_anomalies)} anomalous upstream node(s))'
         )
-        if top.first_anomaly_time is not None:
+        if top_missing_topic is not None:
+            observed_at = missing_times.get(top_missing_topic)
+            timing = f'first observed at t={observed_at:.2f}s' if observed_at is not None else 'onset time unavailable'
+            lines.append(
+                f'  - Temporal   T: {top.t_score:.2f} (missing publisher {top_missing_topic} {timing}; '
+                f'temporal ordering supports but does not prove causality)'
+            )
+        elif top.first_anomaly_time is not None:
             lines.append(
                 f'  - Temporal   T: {top.t_score:.2f} (first anomaly at t={top.first_anomaly_time:.2f}s; '
                 f'earliest in window = supporting evidence, not proof of causality)'
@@ -113,14 +141,22 @@ class Explainer:
             f'  - Symptom    S: {top.s_score:.2f} (explains {len((top.reachable_anomalies | {top.node}) & result.anomalous_nodes)}'
             f'/{n_anom} anomalous nodes)'
         )
-        lines.append(
-            f'  - Severity   A: {top.a_score:.2f} (max normalised severity on node, '
-            f'{top.direct_anomaly_count} direct anomaly event(s))'
-        )
+        if top_missing_topic is not None:
+            lines.append(
+                f'  - Severity   A: {top.a_score:.2f} (max severity of reachable downstream symptom(s); '
+                f'the missing publisher has no direct telemetry metric)'
+            )
+        else:
+            lines.append(
+                f'  - Severity   A: {top.a_score:.2f} (max normalised severity on node, '
+                f'{top.direct_anomaly_count} direct anomaly event(s))'
+            )
         lines.append('')
 
         # 2. Propagation chain
-        chain, chain_nodes = cls.build_propagation_chain(top.node, graph, anomalies)
+        chain, chain_nodes = cls.build_propagation_chain(
+            top.node, graph, anomalies, missing_dependency_times=missing_times
+        )
         result.propagation_chain = chain_nodes
         lines.append('Propagation Chain (evidence-ordered, via discovered graph edges):')
         for step in chain:
@@ -153,6 +189,17 @@ class Explainer:
                     reasons.append(f'lower symptom coverage ({cand.s_score*100:.0f}% vs {top.s_score*100:.0f}%)')
                 if cand.a_score < top.a_score and not reasons:
                     reasons.append('lower anomaly severity')
+                if (
+                    not reasons and top_missing_topic is not None
+                    and cand.node in top.reachable_anomalies
+                    and top.first_anomaly_time is not None
+                    and cand.first_anomaly_time is not None
+                    and top.first_anomaly_time < cand.first_anomaly_time
+                ):
+                    dt = cand.first_anomaly_time - top.first_anomaly_time
+                    reasons.append(
+                        f'downstream symptom {dt:.2f}s after missing publisher {top_missing_topic}'
+                    )
 
                 reason_str = f' [{"; ".join(reasons)}]' if reasons else ''
                 lines.append(

@@ -17,6 +17,9 @@ class DependencyGraph:
         self.adj: Dict[str, Set[str]] = {}       # u -> set of v where u publishes and v subscribes
         self.rev_adj: Dict[str, Set[str]] = {}   # v -> set of u
         self.edge_topics: Dict[Tuple[str, str], Set[str]] = {}
+        # Observed subscriber inputs with no eligible publisher. These are
+        # dependency records, not fabricated live ROS nodes or communication edges.
+        self.missing_dependencies: Dict[str, Set[str]] = {}
 
     def add_node(self, node: str):
         if node not in self.nodes:
@@ -34,6 +37,14 @@ class DependencyGraph:
             self.edge_topics[key] = set()
         self.edge_topics[key].add(topic)
 
+    def add_missing_dependency(self, topic: str, subscribers: Sequence[str]):
+        """Record a topic with eligible subscribers but no observed publisher."""
+        if not topic:
+            return
+        names = {name for name in subscribers if name}
+        if names:
+            self.missing_dependencies[topic] = names
+
     def remove_node(self, node: str):
         if node in self.nodes:
             self.nodes.remove(node)
@@ -45,32 +56,56 @@ class DependencyGraph:
             for u in self.rev_adj.pop(node, set()):
                 self.adj.get(u, set()).discard(node)
                 self.edge_topics.pop((u, node), None)
+            for topic, subscribers in list(self.missing_dependencies.items()):
+                subscribers.discard(node)
+                if not subscribers:
+                    del self.missing_dependencies[topic]
+
+    @staticmethod
+    def missing_dependency_node_name(topic: str) -> str:
+        """Stable display/candidate name for a virtual unavailable topic source."""
+        return f"{topic} [missing publisher]"
+
+    def missing_dependency_topic(self, node: str) -> Optional[str]:
+        """Return the topic represented by a virtual missing-publisher source."""
+        for topic in self.missing_dependencies:
+            if node == self.missing_dependency_node_name(topic):
+                return topic
+        return None
 
     def successors(self, node: str) -> Set[str]:
-        return set(self.adj.get(node, set()))
+        result = set(self.adj.get(node, set()))
+        topic = self.missing_dependency_topic(node)
+        if topic is not None:
+            result.update(self.missing_dependencies.get(topic, set()))
+        return result
 
     def predecessors(self, node: str) -> Set[str]:
-        return set(self.rev_adj.get(node, set()))
+        result = set(self.rev_adj.get(node, set()))
+        for topic, subscribers in self.missing_dependencies.items():
+            if node in subscribers:
+                result.add(self.missing_dependency_node_name(topic))
+        return result
 
     def descendants(self, node: str) -> Set[str]:
-        """Returns all downstream nodes reachable from `node` via directed edges."""
+        """Returns downstream nodes, including observed missing-input relationships."""
         visited = set()
         queue = deque([node])
         while queue:
             curr = queue.popleft()
-            for succ in self.adj.get(curr, set()):
+            for succ in self.successors(curr):
                 if succ not in visited:
                     visited.add(succ)
                     queue.append(succ)
         return visited
 
     def ancestors(self, node: str) -> Set[str]:
-        """Returns all upstream nodes from which `node` can be reached."""
+        """Returns upstream nodes, including virtual unavailable input sources."""
         visited = set()
         queue = deque([node])
         while queue:
             curr = queue.popleft()
-            for pred in self.rev_adj.get(curr, set()):
+            for pred in self.predecessors(curr):
                 if pred not in visited:
                     visited.add(pred)
                     queue.append(pred)
@@ -78,7 +113,7 @@ class DependencyGraph:
 
     def find_all_paths(self, source: str, target: str, max_depth: int = 10) -> List[List[str]]:
         """Finds all simple directed paths from source to target."""
-        if source not in self.nodes or target not in self.nodes:
+        if (source not in self.nodes and self.missing_dependency_topic(source) is None) or target not in self.nodes:
             return []
         paths = []
         queue = deque([[source]])
@@ -90,7 +125,7 @@ class DependencyGraph:
                 continue
             if len(path) > max_depth:
                 continue
-            for succ in self.adj.get(curr, set()):
+            for succ in self.successors(curr):
                 if succ not in path:  # Prevent cycles
                     queue.append(path + [succ])
         return paths
@@ -105,6 +140,10 @@ class DependencyGraph:
                 ],
                 key=lambda e: (e['from'], e['to']),
             ),
+            'missing_dependencies': [
+                {'topic': topic, 'subscribers': sorted(subscribers)}
+                for topic, subscribers in sorted(self.missing_dependencies.items())
+            ],
         }
 
     @classmethod
@@ -115,6 +154,11 @@ class DependencyGraph:
         for e in d.get('edges', []):
             for t in e.get('topics', []) or ['']:
                 g.add_edge(e['from'], e['to'], t)
+        for dependency in d.get('missing_dependencies', []):
+            if isinstance(dependency, dict):
+                g.add_missing_dependency(
+                    dependency.get('topic', ''), dependency.get('subscribers', [])
+                )
         return g
 
     def retain_edges_of(self, other: 'DependencyGraph', nodes: Set[str]):
@@ -218,17 +262,22 @@ class RosGraphDiscoverer:
         for topic_name, _ in topic_names_and_types:
             if cls.should_ignore_topic(topic_name):
                 continue
+            endpoint_data_complete = True
             try:
                 pubs = ros_node.get_publishers_info_by_topic(topic_name)
             except Exception:
                 pubs = []
+                endpoint_data_complete = False
             try:
                 subs = ros_node.get_subscriptions_info_by_topic(topic_name)
             except Exception:
                 subs = []
+                endpoint_data_complete = False
 
             pub_nodes = [p.node_name for p in pubs if not cls.should_ignore_node(p.node_name)]
             sub_nodes = [s.node_name for s in subs if not cls.should_ignore_node(s.node_name)]
+            if endpoint_data_complete and sub_nodes and not pub_nodes:
+                graph.add_missing_dependency(topic_name, sub_nodes)
             endpoint_nodes.update(pub_nodes)
             endpoint_nodes.update(sub_nodes)
             for pub_node in pub_nodes:

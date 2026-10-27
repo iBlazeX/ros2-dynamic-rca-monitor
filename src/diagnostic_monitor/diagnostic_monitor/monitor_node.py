@@ -94,6 +94,12 @@ class DiagnosticMonitorNode(Node):
                 self.get_parameter('missing_publisher_grace_sec').value
             ),
         )
+        # Wall-clock onset of each currently observed missing publisher, used for
+        # temporal RCA. The tracker duration itself remains monotonic-clock based.
+        self.missing_dependency_first_seen: Dict[str, float] = {}
+        # Required inputs become a system-level degraded condition only after the
+        # configured grace period emits required_dependency_unavailable.
+        self.required_dependencies_unavailable = set()
         if extra_topics or extra_nodes:
             self.get_logger().info(
                 f'Deployment exclusions: topics={list(extra_topics)} nodes={list(extra_nodes)}')
@@ -177,8 +183,16 @@ class DiagnosticMonitorNode(Node):
                 subscribers = ', '.join(event.get('subscribers', []))
                 duration = float(event.get('duration_sec', 0.0))
                 event_type = event['event']
+                event_time = time.time()
 
                 if event_type == 'missing_publisher_observed':
+                    # Only configured required inputs are eligible RCA candidates.
+                    # Optional subscriber-only topics remain visible in the graph,
+                    # but do not become causes merely because no publisher exists.
+                    if event.get('required', False):
+                        self.missing_dependency_first_seen[topic] = event_time
+                    else:
+                        self.missing_dependency_first_seen.pop(topic, None)
                     severity = 0.0
                     message = (
                         f'No publisher observed for {topic}; '
@@ -186,6 +200,7 @@ class DiagnosticMonitorNode(Node):
                     )
 
                 elif event_type == 'required_dependency_unavailable':
+                    self.required_dependencies_unavailable.add(topic)
                     severity = 0.5
                     message = (
                         f'Required topic {topic} has no publisher for '
@@ -194,6 +209,8 @@ class DiagnosticMonitorNode(Node):
                     self.get_logger().warning(message)
 
                 else:  # missing_publisher_cleared
+                    self.missing_dependency_first_seen.pop(topic, None)
+                    self.required_dependencies_unavailable.discard(topic)
                     severity = 0.0
                     message = (
                         f'Missing-publisher condition cleared for {topic} '
@@ -201,7 +218,7 @@ class DiagnosticMonitorNode(Node):
                     )
 
                 self.timeline.add(
-                    time.time(),
+                    event_time,
                     topic,
                     event_type,
                     severity,
@@ -234,6 +251,10 @@ class DiagnosticMonitorNode(Node):
         for (u, v), topics in live_graph.edge_topics.items():
             for t in topics:
                 merged.add_edge(u, v, t)
+        # Carry observed unavailable inputs into the effective graph. These records
+        # describe a real subscriber dependency without inventing a live publisher node.
+        for topic, subscribers in live_graph.missing_dependencies.items():
+            merged.add_missing_dependency(topic, subscribers)
         if self.vanished_nodes:
             merged.retain_edges_of(self.last_live_graph, set(self.vanished_nodes))
 
@@ -395,8 +416,14 @@ class DiagnosticMonitorNode(Node):
             for d in self.event_store.get_recent_anomalies(self.rca_window_sec, now_time)
         ]
 
-        diagnosis = self.rca_engine.diagnose(recent_anoms, self.graph, now_time)
-        explanation = Explainer.explain(diagnosis, self.graph, recent_anoms)
+        diagnosis = self.rca_engine.diagnose(
+            recent_anoms, self.graph, now_time,
+            missing_dependency_times=self.missing_dependency_first_seen,
+        )
+        explanation = Explainer.explain(
+            diagnosis, self.graph, recent_anoms,
+            missing_dependency_times=self.missing_dependency_first_seen,
+        )
         diagnosis.explanation = explanation
 
         if diagnosis.root_cause:
@@ -453,6 +480,7 @@ class DiagnosticMonitorNode(Node):
             rca_window_sec=self.rca_window_sec,
             simulator=self.simulator_label,
             ros_graph_nodes=self.live_graph_nodes,
+            required_dependencies_unavailable=self.required_dependencies_unavailable,
         )
 
     def _publish_dashboard_if_due(self, now_time: float):

@@ -124,6 +124,38 @@ def test_discovery_includes_only_application_dataflow_participants():
     assert 'idle_tool' in RosGraphDiscoverer.discover(ros).nodes
 
 
+def test_graph_shows_missing_publisher_dependency_without_fabricating_node():
+    ros = _FakeRosNode(
+        nodes=['obstacle_avoidance'],
+        topics=['/scan'],
+        pubs={},
+        subs={'/scan': ['obstacle_avoidance']},
+    )
+
+    graph = RosGraphDiscoverer.discover(ros)
+
+    # Only the real ROS node remains in the live graph.
+    assert graph.nodes == {'obstacle_avoidance'}
+    assert graph.edge_topics == {}
+    assert graph.missing_dependencies == {
+        '/scan': {'obstacle_avoidance'},
+    }
+    virtual_source = graph.missing_dependency_node_name('/scan')
+    assert graph.successors(virtual_source) == {'obstacle_avoidance'}
+    assert graph.predecessors('obstacle_avoidance') == {virtual_source}
+    assert graph.descendants(virtual_source) == {'obstacle_avoidance'}
+    assert graph.ancestors('obstacle_avoidance') == {virtual_source}
+    assert graph.find_all_paths(virtual_source, 'obstacle_avoidance') == [
+        [virtual_source, 'obstacle_avoidance'],
+    ]
+
+    # Explicit unavailable-input records survive graph serialization.
+    restored = DependencyGraph.from_dict(graph.to_dict())
+    assert restored == graph
+    assert restored.to_dict()['missing_dependencies'] == [
+        {'topic': '/scan', 'subscribers': ['obstacle_avoidance']},
+    ]
+
 def test_discover_missing_publishers_reports_subscriber_only_topics():
     ros = _FakeRosNode(
         nodes=['sensor_node', 'perception_node', 'healthy_publisher'],

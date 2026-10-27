@@ -20,6 +20,10 @@ def generate_launch_description():
                               description='Backend label copied into /rca/dashboard_state '
                                           '(rca_sim | gazebo | rca_test_system). Presentation only; '
                                           'never evaluation ground truth.'),
+        DeclareLaunchArgument('required_topics', default_value="['']",
+                              description='Topics whose missing publishers should escalate after the grace period'),
+        DeclareLaunchArgument('missing_publisher_grace_sec', default_value='2.0',
+                              description='Seconds before a missing required publisher is escalated'),
 
         Node(
             package='diagnostic_monitor',
@@ -35,6 +39,8 @@ def generate_launch_description():
                 'w_s': LaunchConfiguration('w_s'),
                 'w_a': LaunchConfiguration('w_a'),
                 'simulator': LaunchConfiguration('simulator'),
+                'required_topics': LaunchConfiguration('required_topics'),
+                'missing_publisher_grace_sec': LaunchConfiguration('missing_publisher_grace_sec'),
             }],
         ),
     ])

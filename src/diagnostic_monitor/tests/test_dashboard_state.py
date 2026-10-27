@@ -43,6 +43,40 @@ def test_empty_state_is_waiting_and_valid():
     json.dumps(st)  # serialisable
 
 
+def test_missing_dependencies_are_published_without_fake_nodes():
+    g = DependencyGraph()
+    g.add_node('obstacle_avoidance')
+    g.add_missing_dependency('/scan', ['obstacle_avoidance'])
+
+    state = build_dashboard_state(100.0, g, [], None, EventTimeline())
+
+    assert state['counts']['nodes'] == 1
+    assert state['counts']['edges'] == 0
+    assert state['missing_dependencies'] == [
+        {'topic': '/scan', 'subscribers': ['obstacle_avoidance']},
+    ]
+    assert state['required_dependencies_unavailable'] == []
+    assert state['system_status'] == 'NORMAL'
+    assert [node['name'] for node in state['nodes']] == ['obstacle_avoidance']
+    json.dumps(state)
+
+
+def test_active_required_dependency_marks_dashboard_degraded():
+    g = DependencyGraph()
+    g.add_node('obstacle_avoidance')
+    g.add_missing_dependency('/scan', ['obstacle_avoidance'])
+
+    state = build_dashboard_state(
+        100.0, g, [], None, EventTimeline(),
+        required_dependencies_unavailable={'/scan'},
+    )
+
+    assert state['system_status'] == 'DEGRADED'
+    assert state['required_dependencies_unavailable'] == ['/scan']
+    assert state['counts']['nodes'] == 1
+    assert [node['name'] for node in state['nodes']] == ['obstacle_avoidance']
+
+
 def test_normal_state_from_discovered_graph():
     g = _chain()
     st = build_dashboard_state(100.0, g, [], None, EventTimeline(), monitored_topics=4)
@@ -92,6 +126,9 @@ def test_recovering_and_missing_nodes():
     assert st['system_status'] == 'RECOVERING'
     assert {n['name']: n['status'] for n in st['nodes']}['perception_node'] == 'MISSING'
     assert system_status(t0 + 1.0, True, True, old) == 'DEGRADED'
+    assert system_status(
+        t0, True, True, [], required_dependencies_unavailable={'/scan'}
+    ) == 'DEGRADED'
     assert system_status(t0, False, True, []) == 'WAITING'
 
 
