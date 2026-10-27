@@ -97,6 +97,9 @@ class DiagnosticMonitorNode(Node):
         # Wall-clock onset of each currently observed missing publisher, used for
         # temporal RCA. The tracker duration itself remains monotonic-clock based.
         self.missing_dependency_first_seen: Dict[str, float] = {}
+        # Required inputs become a system-level degraded condition only after the
+        # configured grace period emits required_dependency_unavailable.
+        self.required_dependencies_unavailable = set()
         if extra_topics or extra_nodes:
             self.get_logger().info(
                 f'Deployment exclusions: topics={list(extra_topics)} nodes={list(extra_nodes)}')
@@ -197,6 +200,7 @@ class DiagnosticMonitorNode(Node):
                     )
 
                 elif event_type == 'required_dependency_unavailable':
+                    self.required_dependencies_unavailable.add(topic)
                     severity = 0.5
                     message = (
                         f'Required topic {topic} has no publisher for '
@@ -206,6 +210,7 @@ class DiagnosticMonitorNode(Node):
 
                 else:  # missing_publisher_cleared
                     self.missing_dependency_first_seen.pop(topic, None)
+                    self.required_dependencies_unavailable.discard(topic)
                     severity = 0.0
                     message = (
                         f'Missing-publisher condition cleared for {topic} '
@@ -475,6 +480,7 @@ class DiagnosticMonitorNode(Node):
             rca_window_sec=self.rca_window_sec,
             simulator=self.simulator_label,
             ros_graph_nodes=self.live_graph_nodes,
+            required_dependencies_unavailable=self.required_dependencies_unavailable,
         )
 
     def _publish_dashboard_if_due(self, now_time: float):
